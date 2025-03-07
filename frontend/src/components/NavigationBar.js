@@ -42,6 +42,10 @@ const NavigationBar = () => {
                   <i className="fas fa-exclamation-triangle me-1"></i>
                   Mistake Patterns
                 </Nav.Link>
+                <Nav.Link as={Link} to="/audio-generation">
+                  <i className="fas fa-volume-up me-1"></i>
+                  Generate Audio
+                </Nav.Link>
               </>
             )}
           </Nav>

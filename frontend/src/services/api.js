@@ -144,3 +144,11 @@ export const reviewAPI = {
     return response.data;
   }
 };
+
+// TTS API methods
+export const ttsAPI = {
+  generateAllAudio: async (speed = 'normal') => {
+    const response = await axiosInstance.post('/api/v1/tts/generate-all', { speed });
+    return response.data;
+  }
+};

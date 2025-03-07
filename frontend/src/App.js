@@ -14,6 +14,7 @@ import PracticePage from './pages/PracticePage';
 import ProgressPage from './pages/ProgressPage';
 import MistakePatternsPage from './pages/MistakePatternsPage';
 import ReviewPage from './pages/ReviewPage';
+import AudioGenerationPage from './pages/AudioGenerationPage';
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -86,6 +87,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ReviewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/audio-generation"
+              element={
+                <ProtectedRoute>
+                  <AudioGenerationPage />
                 </ProtectedRoute>
               }
             />

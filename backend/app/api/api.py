@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import auth, word_lists, practice, srs
+from app.api.endpoints import auth, word_lists, practice, srs, tts
 
 # Create main API router
 api_router = APIRouter()
@@ -27,4 +27,10 @@ api_router.include_router(
     srs.router,
     prefix="/srs",
     tags=["Spaced Repetition"]
+)
+
+api_router.include_router(
+    tts.router,
+    prefix="/tts",
+    tags=["Text to Speech"]
 )
