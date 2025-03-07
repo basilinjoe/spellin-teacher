@@ -27,14 +27,14 @@ const HomePage = () => {
         </Col>
       </Row>
 
-      <Row xs={1} md={3} className="g-4">
+      <Row xs={1} md={2} lg={4} className="g-4 mb-5">
         <Col>
           <Card className="h-100 text-center p-4">
             <Card.Body>
               <i className="fas fa-upload fa-3x mb-3 text-primary"></i>
-              <h3>Upload Word Lists</h3>
+              <h3>Upload Lists</h3>
               <p>
-                Create custom word lists by uploading CSV files with words, their meanings,
+                Create custom word lists by uploading CSV files with words, meanings,
                 and example sentences.
               </p>
             </Card.Body>
@@ -57,11 +57,24 @@ const HomePage = () => {
         <Col>
           <Card className="h-100 text-center p-4">
             <Card.Body>
+              <i className="fas fa-graduation-cap fa-3x mb-3 text-primary"></i>
+              <h3>Smart Review</h3>
+              <p>
+                Our spaced repetition system helps you review words at optimal intervals
+                to maximize learning efficiency and retention.
+              </p>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col>
+          <Card className="h-100 text-center p-4">
+            <Card.Body>
               <i className="fas fa-chart-line fa-3x mb-3 text-primary"></i>
               <h3>Track Progress</h3>
               <p>
                 Monitor your improvement with detailed statistics and progress tracking
-                for each word list.
+                for each word and list.
               </p>
             </Card.Body>
           </Card>
@@ -70,8 +83,11 @@ const HomePage = () => {
 
       {currentUser && (
         <div className="text-center mt-5">
-          <Link to="/word-lists" className="btn btn-primary btn-lg">
-            Go to My Word Lists
+          <Link to="/word-lists" className="btn btn-primary btn-lg me-3">
+            Go to Word Lists
+          </Link>
+          <Link to="/review" className="btn btn-outline-primary btn-lg">
+            Start Review
           </Link>
         </div>
       )}
@@ -79,7 +95,7 @@ const HomePage = () => {
       <footer className="text-center mt-5 pt-5 text-muted">
         <p>
           Start improving your spelling today with our interactive audio-based
-          learning system.
+          learning system powered by spaced repetition technology.
         </p>
       </footer>
     </Container>

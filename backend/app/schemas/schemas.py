@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
@@ -73,6 +73,9 @@ class WordResponse(WordBase):
     correct_count: int
     incorrect_count: int
     last_practiced: Optional[datetime] = None
+    srs_level: int
+    next_review: Optional[datetime] = None
+    review_interval: int
 
     class Config:
         from_attributes = True
@@ -113,3 +116,21 @@ class PracticeStats(BaseModel):
 class SimilarWordsResponse(BaseModel):
     word: str
     similar_words: List[str]
+
+# SRS-related schemas
+class SRSStatsResponse(BaseModel):
+    total_words: int
+    total_due: int
+    level_counts: Dict[int, int]
+
+class ReviewWordRequest(BaseModel):
+    word_id: int
+
+class ReviewWordResponse(BaseModel):
+    word: str
+    meaning: Optional[str] = None
+    example: Optional[str] = None
+    audio_url: str
+
+class ReviewSubmitRequest(BaseModel):
+    user_spelling: str

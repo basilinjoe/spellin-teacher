@@ -90,7 +90,16 @@
 .progress-bar {
   line-height: 25px;
   font-weight: bold;
+  transition: width 0.6s ease;
 }
+
+/* Level Colors */
+.progress-bar:nth-child(1) { background-color: #dc3545; }  /* Level 0 - Red */
+.progress-bar:nth-child(2) { background-color: #fd7e14; }  /* Level 1 - Orange */
+.progress-bar:nth-child(3) { background-color: #ffc107; }  /* Level 2 - Yellow */
+.progress-bar:nth-child(4) { background-color: #20c997; }  /* Level 3 - Teal */
+.progress-bar:nth-child(5) { background-color: #0dcaf0; }  /* Level 4 - Cyan */
+.progress-bar:nth-child(6) { background-color: #198754; }  /* Level 5 - Green */
 
 /* Word List Cards */
 .word-list-card {
@@ -111,6 +120,21 @@
   font-size: 2.5rem;
   font-weight: bold;
   color: #0d6efd;
+}
+
+/* Review Stats Cards */
+.review-stats .card {
+  transition: transform 0.2s ease;
+}
+
+.review-stats .card:hover {
+  transform: translateY(-5px);
+}
+
+.review-stats h3 {
+  font-size: 2rem;
+  color: #0d6efd;
+  margin-bottom: 0.5rem;
 }
 
 /* Navigation */

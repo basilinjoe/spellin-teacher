@@ -4,13 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
+import csv
+import io
 
 from app.core.database import get_db
 from app.models.models import WordList, Word, User
 from app.schemas.schemas import WordListCreate, WordListResponse, WordResponse, SimilarWordsResponse
 from app.services.csv_service import csv_service
 from app.services.dictionary_service import dictionary_service
-from app.api.endpoints.auth import get_current_user
+from app.services.srs_service import srs_service
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -84,51 +87,47 @@ async def upload_word_list(
     current_user: User = Depends(get_current_user)
 ):
     """Upload a new word list from CSV file"""
-    try:
-        # Process CSV file
-        processed_data = await csv_service.process_csv_file(file)
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    
+    # Create new word list
+    word_list = WordList(
+        name=name,
+        description=description,
+        owner_id=current_user.id,
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(word_list)
+    await db.flush()  # Get word_list.id
+    
+    # Read and process CSV file
+    content = await file.read()
+    csv_file = io.StringIO(content.decode())
+    csv_reader = csv.DictReader(csv_file)
+    
+    for row in csv_reader:
+        if 'word' not in row:
+            raise HTTPException(status_code=400, detail="CSV must have a 'word' column")
         
-        # Create word list
-        word_list = WordList(
-            name=name,
-            description=description,
-            owner_id=current_user.id,
-            created_at=datetime.now(timezone.utc)
+        # Create new word
+        word = Word(
+            word=row['word'].strip(),
+            meaning=row.get('meaning', '').strip(),
+            example=row.get('example', '').strip(),
+            word_list_id=word_list.id,
+            familiar=False,
+            practice_count=0,
+            correct_count=0,
+            incorrect_count=0
         )
-        db.add(word_list)
-        await db.flush()  # Get word_list.id
+        db.add(word)
+        await db.flush()
         
-        # Create words and fetch meanings/examples
-        for word_data in processed_data["words"]:
-            # Only lookup meaning and example if they're not provided in CSV
-            if not word_data["meaning"] or not word_data["example"]:
-                meaning, example = await dictionary_service.get_word_details(word_data["word"])
-                if not word_data["meaning"]:
-                    word_data["meaning"] = meaning
-                if not word_data["example"]:
-                    word_data["example"] = example
-                    
-            word = Word(
-                word=word_data["word"],
-                meaning=word_data["meaning"],
-                example=word_data["example"],
-                word_list_id=word_list.id,
-                familiar=False,
-                practice_count=0,
-                correct_count=0,
-                incorrect_count=0
-            )
-            db.add(word)
-        
-        await db.commit()
-        return word_list
-        
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        # Initialize SRS for the new word
+        await srs_service.initialize_word(db, word)
+    
+    await db.commit()
+    return word_list
 
 @router.delete("/{list_id}")
 async def delete_word_list(

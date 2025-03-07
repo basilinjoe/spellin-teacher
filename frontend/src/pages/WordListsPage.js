@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Modal, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { wordListAPI } from '../services/api';
+import SRSStatusCard from '../components/SRSStatusCard';
 
 const WordListsPage = () => {
   const [wordLists, setWordLists] = useState([]);
@@ -92,6 +93,9 @@ const WordListsPage = () => {
           </Link>
         </Col>
       </Row>
+
+      {/* Add SRS Status Card */}
+      <SRSStatusCard />
 
       {error && (
         <Alert variant="danger" className="mb-4" dismissible onClose={() => setError('')}>

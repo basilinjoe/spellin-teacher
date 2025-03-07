@@ -13,6 +13,7 @@ import UploadPage from './pages/UploadPage';
 import PracticePage from './pages/PracticePage';
 import ProgressPage from './pages/ProgressPage';
 import MistakePatternsPage from './pages/MistakePatternsPage';
+import ReviewPage from './pages/ReviewPage';
 
 // Styles
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -77,6 +78,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MistakePatternsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/review"
+              element={
+                <ProtectedRoute>
+                  <ReviewPage />
                 </ProtectedRoute>
               }
             />

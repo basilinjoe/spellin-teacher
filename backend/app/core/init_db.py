@@ -3,25 +3,79 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
+from datetime import datetime, timedelta
 
 from app.core.database import Base, engine, AsyncSessionLocal
 from app.models.models import User, WordList, Word
 
 logger = logging.getLogger(__name__)
 
+async def apply_srs_migration():
+    """Apply SRS migration to add spaced repetition fields"""
+    async with AsyncSessionLocal() as session:
+        try:
+            # Add srs_level column
+            try:
+                await session.execute(text(
+                    "ALTER TABLE words ADD COLUMN srs_level INTEGER DEFAULT 0"
+                ))
+                await session.commit()
+                logger.info("Added srs_level column")
+            except Exception as e:
+                logger.info(f"srs_level column might already exist: {str(e)}")
+                await session.rollback()
+            
+            # Add next_review column
+            try:
+                await session.execute(text(
+                    "ALTER TABLE words ADD COLUMN next_review TIMESTAMP"
+                ))
+                await session.commit()
+                logger.info("Added next_review column")
+            except Exception as e:
+                logger.info(f"next_review column might already exist: {str(e)}")
+                await session.rollback()
+            
+            # Add review_interval column
+            try:
+                await session.execute(text(
+                    "ALTER TABLE words ADD COLUMN review_interval INTEGER DEFAULT 0"
+                ))
+                await session.commit()
+                logger.info("Added review_interval column")
+            except Exception as e:
+                logger.info(f"review_interval column might already exist: {str(e)}")
+                await session.rollback()
+            
+            # Create index for next_review
+            try:
+                await session.execute(text(
+                    "CREATE INDEX IF NOT EXISTS idx_words_next_review ON words(next_review)"
+                ))
+                await session.commit()
+                logger.info("Created next_review index")
+            except Exception as e:
+                logger.info(f"next_review index might already exist: {str(e)}")
+                await session.rollback()
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Error applying SRS migration: {str(e)}")
+            raise
+
 async def init_db():
-    """Initialize the database by creating all tables"""
+    """Initialize the database by creating all tables and applying migrations"""
     try:
         async with engine.begin() as conn:
-            # Drop all tables if they exist (comment out in production)
-            # await conn.run_sync(Base.metadata.drop_all)
-            
-            # Create all tables
+            # Create all tables if they don't exist
             await conn.run_sync(Base.metadata.create_all)
             
         logger.info("Database tables created successfully")
         
-        # Create a test user if no users exist
+        # Apply SRS migration
+        await apply_srs_migration()
+        logger.info("SRS migration applied successfully")
+        
+        # Initialize test data if database is empty
         async with AsyncSessionLocal() as session:
             result = await session.execute(text("SELECT COUNT(*) FROM users"))
             user_count = result.scalar()
@@ -32,7 +86,7 @@ async def init_db():
     except SQLAlchemyError as e:
         logger.error(f"Error initializing database: {str(e)}")
         raise
-
+    
 async def create_test_data(session: AsyncSession):
     """Create test data for development"""
     try:
@@ -53,7 +107,7 @@ async def create_test_data(session: AsyncSession):
         session.add(word_list)
         await session.flush()
         
-        # Add sample words
+        # Add sample words with SRS initialization
         sample_words = [
             {
                 "word": "accommodate",
@@ -72,6 +126,7 @@ async def create_test_data(session: AsyncSession):
             }
         ]
         
+        current_time = datetime.utcnow()
         for word_data in sample_words:
             word = Word(
                 word=word_data["word"],
@@ -81,7 +136,10 @@ async def create_test_data(session: AsyncSession):
                 familiar=False,
                 practice_count=0,
                 correct_count=0,
-                incorrect_count=0
+                incorrect_count=0,
+                srs_level=0,
+                review_interval=4,  # Initial 4-hour interval
+                next_review=current_time + timedelta(hours=4)
             )
             session.add(word)
         

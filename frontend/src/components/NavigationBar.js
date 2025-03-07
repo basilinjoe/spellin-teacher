@@ -27,10 +27,16 @@ const NavigationBar = () => {
             {currentUser && (
               <>
                 <Nav.Link as={Link} to="/word-lists">
+                  <i className="fas fa-list me-1"></i>
                   Word Lists
                 </Nav.Link>
                 <Nav.Link as={Link} to="/upload">
+                  <i className="fas fa-upload me-1"></i>
                   Upload List
+                </Nav.Link>
+                <Nav.Link as={Link} to="/review">
+                  <i className="fas fa-graduation-cap me-1"></i>
+                  Review
                 </Nav.Link>
                 <Nav.Link as={Link} to="/mistake-patterns">
                   <i className="fas fa-exclamation-triangle me-1"></i>

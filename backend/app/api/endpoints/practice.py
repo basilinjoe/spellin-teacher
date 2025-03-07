@@ -12,7 +12,7 @@ from app.schemas.schemas import PracticeRequest, PracticeResponse, PracticeSubmi
 from app.services.tts_service import tts_service
 from app.services.dictionary_service import dictionary_service
 from app.services.mistake_pattern_service import mistake_pattern_service
-from app.api.endpoints.auth import get_current_user
+from app.api.deps import get_current_user
 
 router = APIRouter()
 

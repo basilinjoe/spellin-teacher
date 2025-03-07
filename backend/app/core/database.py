@@ -1,35 +1,24 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from app.core.config import settings
+SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./spelling_teacher.db"
 
-# Create async engine
 engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=False,
+    SQLALCHEMY_DATABASE_URL,
+    echo=True,
     future=True,
-    poolclass=StaticPool,  # Use static pool for SQLite
-    connect_args={"check_same_thread": False}  # Required for SQLite
 )
 
-# Create async session factory
-AsyncSessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
 )
 
-# Create declarative base for models
 Base = declarative_base()
 
-# Dependency for database session
-async def get_db() -> AsyncSession:
-    """Dependency that provides a database session"""
+async def get_db():
+    """Dependency for getting DB sessions"""
     async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+        yield session

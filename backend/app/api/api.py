@@ -1,6 +1,5 @@
 from fastapi import APIRouter
-
-from app.api.endpoints import auth, word_lists, practice
+from app.api.endpoints import auth, word_lists, practice, srs
 
 # Create main API router
 api_router = APIRouter()
@@ -22,4 +21,10 @@ api_router.include_router(
     practice.router,
     prefix="/practice",
     tags=["Practice"]
+)
+
+api_router.include_router(
+    srs.router,
+    prefix="/srs",
+    tags=["Spaced Repetition"]
 )

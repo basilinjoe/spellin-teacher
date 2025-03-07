@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text, JSON
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text, JSON, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -14,7 +14,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     
     # Relationships
-    word_lists = relationship("WordList", back_populates="owner")
+    word_lists = relationship("WordList", back_populates="owner", cascade="all, delete-orphan")
 
 
 class WordList(Base):
@@ -62,6 +62,16 @@ class Word(Base):
     correct_count = Column(Integer, default=0)
     incorrect_count = Column(Integer, default=0)
     last_practiced = Column(DateTime(timezone=True), nullable=True)
+    
+    # SRS specific fields
+    srs_level = Column(Integer, default=0, nullable=False)  # 0-5, representing mastery level
+    next_review = Column(DateTime(timezone=True), nullable=True, index=True)
+    review_interval = Column(Integer, default=0, nullable=False)  # Interval in hours
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint('srs_level >= 0 AND srs_level <= 5', name='check_srs_level_range'),
+    )
     
     # Relationships
     word_list = relationship("WordList", back_populates="words")

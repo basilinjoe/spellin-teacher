@@ -124,3 +124,23 @@ export const practiceAPI = {
     return response.data;
   },
 };
+
+// Review API methods
+export const reviewAPI = {
+  getReviewWords: async () => {
+    const response = await axiosInstance.get('/api/v1/srs/review');
+    return response.data;
+  },
+
+  submitReview: async (wordId, userSpelling) => {
+    const response = await axiosInstance.post(`/api/v1/srs/review/${wordId}/submit`, {
+      user_spelling: userSpelling,
+    });
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await axiosInstance.get('/api/v1/srs/stats');
+    return response.data;
+  }
+};
