@@ -23,34 +23,7 @@ const NavigationBar = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            {currentUser && (
-              <>
-                <Nav.Link as={Link} to="/word-lists">
-                  <i className="fas fa-list me-1"></i>
-                  Word Lists
-                </Nav.Link>
-                <Nav.Link as={Link} to="/upload">
-                  <i className="fas fa-upload me-1"></i>
-                  Upload List
-                </Nav.Link>
-                <Nav.Link as={Link} to="/review">
-                  <i className="fas fa-graduation-cap me-1"></i>
-                  Review
-                </Nav.Link>
-                <Nav.Link as={Link} to="/mistake-patterns">
-                  <i className="fas fa-exclamation-triangle me-1"></i>
-                  Mistake Patterns
-                </Nav.Link>
-                <Nav.Link as={Link} to="/audio-generation">
-                  <i className="fas fa-volume-up me-1"></i>
-                  Generate Audio
-                </Nav.Link>
-              </>
-            )}
-          </Nav>
-          
-          <Nav>
+          <Nav className="ms-auto">
             {currentUser ? (
               <>
                 <Nav.Item className="d-flex align-items-center me-3">
