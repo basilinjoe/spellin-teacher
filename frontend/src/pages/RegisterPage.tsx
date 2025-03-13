@@ -1,18 +1,24 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, FormEvent } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const RegisterPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [validationError, setValidationError] = useState('');
-  const { register, error: authError } = useContext(AuthContext);
+const RegisterPage: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string>('');
+  const auth = useContext(AuthContext);
   const navigate = useNavigate();
+
+  if (!auth) {
+    throw new Error('AuthContext not available');
+  }
   
-  const handleSubmit = async (e) => {
+  const { register, error: authError } = auth;
+  
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
     // Reset errors
@@ -36,13 +42,11 @@ const RegisterPage = () => {
       if (success) {
         navigate('/word-lists');
       }
-    } catch (error) {
-      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <Container>
       <Row className="justify-content-center">
@@ -52,10 +56,11 @@ const RegisterPage = () => {
               <h2>Register</h2>
             </Card.Header>
             <Card.Body>
-              {(authError || validationError) && (
-                <Alert variant="danger">
-                  {authError || validationError}
-                </Alert>
+              {validationError && (
+                <Alert variant="danger">{validationError}</Alert>
+              )}
+              {authError && (
+                <Alert variant="danger">{authError}</Alert>
               )}
               
               <Form onSubmit={handleSubmit}>

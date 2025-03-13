@@ -1,20 +1,26 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, FormEvent, ChangeEvent } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+interface LocationState {
+  from?: {
+    pathname: string;
+  };
+}
+
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const { login, error: authError } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Get redirect path from location state or default to word lists
-  const from = location.state?.from?.pathname || '/word-lists';
+  const from = (location.state as LocationState)?.from?.pathname || '/word-lists';
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     try {
@@ -29,6 +35,9 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
 
   return (
     <Container>
@@ -50,7 +59,7 @@ const LoginPage = () => {
                     type="email"
                     placeholder="Enter email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
                     required
                   />
                 </Form.Group>
@@ -61,7 +70,7 @@ const LoginPage = () => {
                     type="password"
                     placeholder="Password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
                     required
                   />
                 </Form.Group>

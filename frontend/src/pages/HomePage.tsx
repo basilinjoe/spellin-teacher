@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
   const { currentUser } = useContext(AuthContext);
 
   return (

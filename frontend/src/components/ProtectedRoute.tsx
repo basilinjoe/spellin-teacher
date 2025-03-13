@@ -1,8 +1,12 @@
-import React, { useContext } from 'react';
+import React, { useContext, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
 
   if (!currentUser) {
@@ -10,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

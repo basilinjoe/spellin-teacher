@@ -2,13 +2,20 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, ProgressBar } from 'react-bootstrap';
 import { ttsAPI } from '../services/api';
 
-const AudioGenerationPage = () => {
-  const [speed, setSpeed] = useState('normal');
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(null);
-  const [error, setError] = useState('');
+interface GenerationProgress {
+  total: number;
+  processed: number;
+  failed: number;
+  percentage: number;
+}
 
-  const handleGenerateAudio = async () => {
+const AudioGenerationPage: React.FC = () => {
+  const [speed, setSpeed] = useState<'normal' | 'slow'>('normal');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<GenerationProgress | null>(null);
+  const [error, setError] = useState<string>('');
+
+  const handleGenerateAudio = async (): Promise<void> => {
     try {
       setLoading(true);
       setError('');
@@ -23,7 +30,7 @@ const AudioGenerationPage = () => {
         percentage: Math.round((result.processed / result.total) * 100)
       });
       
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to generate audio files');
     } finally {
       setLoading(false);
@@ -44,7 +51,7 @@ const AudioGenerationPage = () => {
                   <Form.Label>Speech Speed</Form.Label>
                   <Form.Select 
                     value={speed}
-                    onChange={(e) => setSpeed(e.target.value)}
+                    onChange={(e) => setSpeed(e.target.value as 'normal' | 'slow')}
                     disabled={loading}
                   >
                     <option value="normal">Normal</option>

@@ -3,7 +3,7 @@ import { Nav } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const SideNav = () => {
+const SideNav: React.FC = () => {
   const { currentUser } = useContext(AuthContext);
   const location = useLocation();
 

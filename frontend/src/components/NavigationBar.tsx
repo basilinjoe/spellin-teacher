@@ -3,11 +3,11 @@ import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const NavigationBar = () => {
+const NavigationBar: React.FC = () => {
   const { currentUser, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     logout();
     navigate('/login');
   };

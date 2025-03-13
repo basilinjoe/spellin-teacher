@@ -21,7 +21,7 @@ import AudioGenerationPage from './pages/AudioGenerationPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-function App() {
+const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
@@ -111,6 +111,6 @@ function App() {
       </AuthProvider>
     </Router>
   );
-}
+};
 
 export default App;

@@ -3,12 +3,20 @@ import { Card, Row, Col, ProgressBar } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { reviewAPI } from '../services/api';
 
-const SRSStatusCard = () => {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+interface SRSStats {
+  total_due: number;
+  total_words: number;
+  level_counts: {
+    [key: number]: number;
+  };
+}
+
+const SRSStatusCard: React.FC = () => {
+  const [stats, setStats] = useState<SRSStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const loadStats = async () => {
+    const loadStats = async (): Promise<void> => {
       try {
         const data = await reviewAPI.getStats();
         setStats(data);

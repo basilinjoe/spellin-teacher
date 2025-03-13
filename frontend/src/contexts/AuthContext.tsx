@@ -1,19 +1,42 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { axiosInstance } from '../services/api';
 
-export const AuthContext = createContext(null);
+interface User {
+  id: number;
+  email: string;
+  is_active: boolean;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+interface AuthContextType {
+  currentUser: User | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  error: string;
+}
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+interface AuthResponse {
+  access_token: string;
+  user: User;
+}
+
+export const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   // Load user from localStorage on mount
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
+        const parsedUser = JSON.parse(storedUser) as User;
         setCurrentUser(parsedUser);
       }
     } catch (err) {
@@ -27,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setError('');
       const formData = new URLSearchParams();
@@ -38,7 +61,7 @@ export const AuthProvider = ({ children }) => {
       formData.append('client_id', 'string');
       formData.append('client_secret', 'string');
 
-      const response = await axiosInstance.post('/api/v1/auth/login', formData, {
+      const response = await axiosInstance.post<AuthResponse>('/api/v1/auth/login', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -52,16 +75,16 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
       setCurrentUser(user);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to login');
       return false;
     }
   };
 
-  const register = async (email, password) => {
+  const register = async (email: string, password: string): Promise<boolean> => {
     try {
       setError('');
-      const response = await axiosInstance.post('/api/v1/auth/register', {
+      const response = await axiosInstance.post<AuthResponse>('/api/v1/auth/register', {
         email,
         password
       });
@@ -71,20 +94,20 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
       setCurrentUser(user);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to register');
       return false;
     }
   };
 
-  const logout = () => {
+  const logout = (): void => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setCurrentUser(null);
     setError('');
   };
 
-  const value = {
+  const value: AuthContextType = {
     currentUser,
     login,
     register,

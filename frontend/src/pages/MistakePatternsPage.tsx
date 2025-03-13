@@ -3,48 +3,73 @@ import { Container, Row, Col, Card, Table, Badge, Alert } from 'react-bootstrap'
 import { useParams } from 'react-router-dom';
 import { practiceAPI, wordListAPI } from '../services/api';
 
-const MistakePatternsPage = () => {
-  const { listId } = useParams();
-  const [patterns, setPatterns] = useState([]);
-  const [wordList, setWordList] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+interface MistakePattern {
+  id: number;
+  pattern_type: string;
+  description: string;
+  frequency: number;
+  examples: string[];
+  word?: {
+    word: string;
+  };
+}
+
+interface WordList {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+interface RouteParams {
+  [key: string]: string | undefined;
+  listId?: string;
+}
+
+const MistakePatternsPage: React.FC = () => {
+  const { listId } = useParams<RouteParams>();
+  const [patterns, setPatterns] = useState<MistakePattern[]>([]);
+  const [wordList, setWordList] = useState<WordList | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     loadData();
   }, [listId]);
 
-  const loadData = async () => {
+  const loadData = async (): Promise<void> => {
     try {
       setLoading(true);
       setError('');
 
-      // Load patterns and word list (if listId provided) in parallel
-      const loadPromises = [practiceAPI.getMistakePatterns(listId)];
+      const patternsPromise = practiceAPI.getMistakePatterns(listId ? parseInt(listId) : null);
+      let wordListPromise;
       if (listId) {
-        loadPromises.push(wordListAPI.getWordList(listId));
+        wordListPromise = wordListAPI.getWordList(parseInt(listId));
       }
 
-      const [patternsData, wordListData] = await Promise.all(loadPromises);
+      const [patternsData, wordListData] = await Promise.all([
+        patternsPromise,
+        wordListPromise
+      ].filter(Boolean) as [Promise<MistakePattern[]>, Promise<WordList>?]);
       
       setPatterns(patternsData);
       if (wordListData) {
         setWordList(wordListData);
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to load mistake patterns');
+      setError((err as any).response?.data?.detail || 'Failed to load mistake patterns');
     } finally {
       setLoading(false);
     }
   };
 
   // Group patterns by type
-  const groupedPatterns = patterns.reduce((groups, pattern) => {
+  const groupedPatterns: Record<string, MistakePattern[]> = patterns.reduce((groups, pattern) => {
     const group = groups[pattern.pattern_type] || [];
     group.push(pattern);
     groups[pattern.pattern_type] = group;
     return groups;
-  }, {});
+  }, {} as Record<string, MistakePattern[]>);
 
   if (loading) {
     return (
