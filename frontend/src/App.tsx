@@ -17,8 +17,7 @@ import MistakePatternsPage from './pages/MistakePatternsPage';
 import ReviewPage from './pages/ReviewPage';
 import AudioGenerationPage from './pages/AudioGenerationPage';
 
-// Styles
-import 'bootstrap/dist/css/bootstrap.min.css';
+// Styles - Removed Bootstrap import
 import './App.css';
 
 const App: React.FC = () => {
@@ -27,9 +26,9 @@ const App: React.FC = () => {
       <AuthProvider>
         <div className="App">
           <NavigationBar />
-          <div className="d-flex">
+          <div className="flex">
             <SideNav />
-            <main className="flex-grow-1 p-3">
+            <main className="flex-grow p-3">
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<HomePage />} />

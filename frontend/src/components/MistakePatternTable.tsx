@@ -1,12 +1,26 @@
 import React from 'react';
-import { Card, Table, Badge } from 'react-bootstrap';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 interface MistakePattern {
   id: number;
   pattern_type: string;
   description: string;
   frequency: number;
-  examples: string[];
+  examples: string[][];
   word?: {
     word: string;
   };
@@ -21,37 +35,35 @@ const MistakePatternTable: React.FC<MistakePatternTableProps> = ({ patterns }) =
     <>
       {Object.entries(patterns).map(([type, typePatterns]) => (
         <Card key={type} className="mb-4">
-          <Card.Header>
-            <h4 className="mb-0 text-capitalize">{type} Patterns</h4>
-          </Card.Header>
-          <Card.Body>
-            <Table responsive>
-              <thead>
-                <tr>
-                  <th>Word</th>
-                  <th>Description</th>
-                  <th>Frequency</th>
-                  <th>Examples</th>
-                </tr>
-              </thead>
-              <tbody>
+          <CardHeader>
+            <CardTitle className="capitalize">{type} Patterns</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Word</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Frequency</TableHead>
+                  <TableHead>Examples</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {typePatterns.map((pattern) => (
-                  <tr key={pattern.id}>
-                    <td>{pattern.word?.word}</td>
-                    <td>{pattern.description}</td>
-                    <td>
-                      <Badge bg="primary">{pattern.frequency}</Badge>
-                    </td>
-                    <td>
-                      <small className="text-muted">
-                        {pattern.examples.join(', ')}
-                      </small>
-                    </td>
-                  </tr>
+                  <TableRow key={pattern.id}>
+                    <TableCell>{pattern.word?.word}</TableCell>
+                    <TableCell>{pattern.description}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{pattern.frequency}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {pattern.examples.join(', ')}
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
+              </TableBody>
             </Table>
-          </Card.Body>
+          </CardContent>
         </Card>
       ))}
     </>

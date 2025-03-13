@@ -1,5 +1,8 @@
 import React from 'react';
-import { Card } from 'react-bootstrap';
+import { 
+  Card, 
+  CardContent 
+} from '@/components/ui/card';
 
 interface StatsCardProps {
   value: string | number;
@@ -9,11 +12,11 @@ interface StatsCardProps {
 
 const StatsCard: React.FC<StatsCardProps> = ({ value, label, className = '' }) => {
   return (
-    <Card className={`stats-card h-100 ${className}`}>
-      <Card.Body>
-        <h2>{value}</h2>
-        <p className="text-muted mb-0">{label}</p>
-      </Card.Body>
+    <Card className="h-full">
+      <CardContent className="flex flex-col items-center justify-center p-6">
+        <div className="text-4xl font-bold text-primary">{value}</div>
+        <p className="text-muted-foreground mt-1">{label}</p>
+      </CardContent>
     </Card>
   );
 };

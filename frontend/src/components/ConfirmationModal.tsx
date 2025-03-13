@@ -1,5 +1,12 @@
 import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ConfirmationModalProps {
   show: boolean;
@@ -8,7 +15,7 @@ interface ConfirmationModalProps {
   title: string;
   message: string;
   confirmLabel?: string;
-  confirmVariant?: string;
+  confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   cancelLabel?: string;
 }
 
@@ -19,26 +26,28 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   message,
   confirmLabel = 'Confirm',
-  confirmVariant = 'danger',
+  confirmVariant = 'destructive',
   cancelLabel = 'Cancel'
 }) => {
   return (
-    <Modal show={show} onHide={onHide}>
-      <Modal.Header closeButton>
-        <Modal.Title>{title}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {message}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          {cancelLabel}
-        </Button>
-        <Button variant={confirmVariant} onClick={onConfirm}>
-          {confirmLabel}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+    <Dialog open={show} onOpenChange={onHide}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          {message}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onHide}>
+            {cancelLabel}
+          </Button>
+          <Button variant={confirmVariant} onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

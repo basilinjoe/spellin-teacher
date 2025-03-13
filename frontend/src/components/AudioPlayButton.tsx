@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
+import { Button } from './ui/button';
 
 interface AudioPlayButtonProps {
   onClick: () => void;
@@ -17,7 +17,7 @@ const AudioPlayButton: React.FC<AudioPlayButtonProps> = ({
   return (
     <div className="text-center mb-4">
       <Button
-        variant="primary"
+        variant="default"
         size={size}
         className={`practice-audio-button ${className}`}
         onClick={onClick}
