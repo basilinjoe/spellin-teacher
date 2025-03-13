@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert, Badge } from 'react-bootstrap';
+import { Card, Form, Button } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { practiceAPI, wordListAPI } from '../services/api';
+import { 
+    LoadingSpinner, 
+    ErrorAlert, 
+    AudioPlayButton, 
+    PracticeResultCard,
+    PageContainer,
+    PageHeader 
+} from '../components';
 
 interface WordList {
     id: number;
@@ -19,18 +27,10 @@ interface Word {
 interface PracticeResult {
     correct: boolean;
     mistake_pattern?: string;
-    next_word?: Word;
-    similar_words?: Word[];
-    word?: string;
+    word: string;
     meaning?: string;
     example?: string;
 }
-
-const getHighlightedWord = (attempt: string, correct: string | undefined): string => {
-    if (!correct) return attempt;
-    // Simple highlighting - you might want to enhance this
-    return attempt === correct ? attempt : `<span class="text-danger">${attempt}</span>`;
-};
 
 interface RouteParams {
     listId: string;
@@ -116,10 +116,9 @@ const PracticePage: React.FC = () => {
             setResult({
                 correct: response.correct,
                 mistake_pattern: response.mistake_patterns?.[0]?.description,
-                word: response.word,
+                word: response.word || currentWord.word,
                 meaning: response.meaning,
-                example: response.example,
-                similar_words: []
+                example: response.example
             });
 
             setUserInput('');
@@ -133,170 +132,88 @@ const PracticePage: React.FC = () => {
         loadData();
     };
 
+    if (loading && !currentWord) {
+        return <LoadingSpinner />;
+    }
+
     return (
-        <Container className="py-4">
-            <Row className="justify-content-center">
-                <Col md={8}>
-                    <Card>
-                        <Card.Header>
-                            <div className="d-flex justify-content-between align-items-center">
-                                <h2 className="mb-0">Practice: {wordList?.name}</h2>
-                                <Form.Check
-                                    type="switch"
-                                    id="speed-switch"
-                                    label="Slow Mode"
-                                    checked={speed === 'slow'}
-                                    onChange={(e) => setSpeed(e.target.checked ? 'slow' : 'normal')}
-                                    className="mb-0"
-                                />
+        <PageContainer>
+            <Card>
+                <Card.Header>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <PageHeader 
+                            title={`Practice: ${wordList?.name}`}
+                            className="mb-0"
+                        />
+                        <Form.Check
+                            type="switch"
+                            id="speed-switch"
+                            label="Slow Mode"
+                            checked={speed === 'slow'}
+                            onChange={(e) => setSpeed(e.target.checked ? 'slow' : 'normal')}
+                            className="mb-0"
+                        />
+                    </div>
+                </Card.Header>
+                <Card.Body>
+                    <ErrorAlert error={error} onDismiss={() => setError('')} />
+
+                    {result ? (
+                        <div>
+                            <PracticeResultCard {...result} userInput={userInput} />
+                            <div className="d-grid gap-2">
+                                <Button
+                                    variant="primary"
+                                    size="lg"
+                                    onClick={handleNextWord}
+                                    disabled={loading}
+                                >
+                                    Next Word (Press Enter or Space)
+                                </Button>
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => navigate(`/progress/${listId}`)}
+                                >
+                                    View Progress
+                                </Button>
                             </div>
-                        </Card.Header>
-                        <Card.Body>
-                            {error && (
-                                <Alert variant="danger" className="mb-4">
-                                    {error}
+                        </div>
+                    ) : (
+                        <div>
+                            <AudioPlayButton
+                                onClick={playAudio}
+                                disabled={loading || !audioUrl}
+                            />
+
+                            <Form onSubmit={handleSubmit}>
+                                <Form.Group className="mb-4">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Type the word here and press Enter"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        autoComplete="off"
+                                        autoFocus
+                                    />
+                                </Form.Group>
+
+                                <div className="d-grid">
                                     <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        className="float-end"
-                                        onClick={() => setError('')}
+                                        variant="primary"
+                                        size="lg"
+                                        type="submit"
+                                        disabled={loading || !userInput.trim()}
                                     >
-                                        Dismiss
+                                        Submit
                                     </Button>
-                                </Alert>
-                            )}
-
-                            {result ? (
-                                // Show practice result
-                                <div className="text-center">
-                                    <Alert variant={result.correct ? 'success' : 'danger'}>
-                                        {result.correct ? 'Correct!' : 'Incorrect!'}
-                                    </Alert>
-
-                                    <h3 className="mb-4">
-                                        {result.correct ? (
-                                            result.word
-                                        ) : (
-                                            <>
-                                                <div className="mb-2">Your attempt:</div>
-                                                <div
-                                                    className="spelling-attempt"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: getHighlightedWord(userInput, result.word)
-                                                    }}
-                                                />
-                                                <div className="mt-2 text-muted">
-                                                    Correct spelling: {result.word}
-                                                </div>
-                                            </>
-                                        )}
-                                    </h3>
-
-                                    {result.meaning && (
-                                        <p className="mb-3">
-                                            <strong>Meaning:</strong> {result.meaning}
-                                        </p>
-                                    )}
-
-                                    {result.example && (
-                                        <p className="mb-4">
-                                            <strong>Example:</strong> {result.example}
-                                        </p>
-                                    )}
-
-                                    {result.mistake_pattern && (
-                                        <p className="mb-3">
-                                            <strong>Mistake Pattern:</strong> {result.mistake_pattern}
-                                        </p>
-                                    )}
-
-                                    {result.similar_words && result.similar_words.length > 0 && (
-                                        <div className="mb-4">
-                                            <h4>Similar Words:</h4>
-                                            <div className="d-flex flex-wrap justify-content-center gap-2">
-                                                {result.similar_words.map((word, index) => (
-                                                    <Badge
-                                                        key={index}
-                                                        bg="info"
-                                                        className="p-2"
-                                                        style={{ fontSize: '1rem' }}
-                                                    >
-                                                        {word.word}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="d-grid gap-2">
-                                        <Button
-                                            variant="primary"
-                                            size="lg"
-                                            onClick={handleNextWord}
-                                            disabled={loading}
-                                        >
-                                            Next Word (Press Enter or Space)
-                                        </Button>
-                                        <Button
-                                            variant="outline-secondary"
-                                            onClick={() => navigate(`/progress/${listId}`)}
-                                        >
-                                            View Progress
-                                        </Button>
-                                    </div>
                                 </div>
-                            ) : (
-                                // Show practice interface
-                                <div>
-                                    <div className="text-center mb-4">
-                                        <Button
-                                            variant="primary"
-                                            size="lg"
-                                            className="practice-audio-button"
-                                            onClick={playAudio}
-                                            disabled={loading || !audioUrl}
-                                            title="Click or press Space to play audio"
-                                        >
-                                            <i className="fas fa-volume-up fa-3x"></i>
-                                        </Button>
-                                        <p className="mt-3">
-                                            Click or press <kbd>Space</kbd> to hear the word
-                                        </p>
-                                    </div>
-
-                                    <Form onSubmit={handleSubmit}>
-                                        <Form.Group className="mb-4">
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Type the word here and press Enter"
-                                                value={userInput}
-                                                onChange={(e) => setUserInput(e.target.value)}
-
-                                                autoComplete="off"
-                                                autoFocus
-                                            />
-                                        </Form.Group>
-
-                                        <div className="d-grid">
-                                            <Button
-                                                variant="primary"
-                                                size="lg"
-                                                type="submit"
-                                                disabled={loading || !userInput.trim()}
-                                            >
-                                                Submit
-                                            </Button>
-                                        </div>
-                                    </Form>
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Container>
+                            </Form>
+                        </div>
+                    )}
+                </Card.Body>
+            </Card>
+        </PageContainer>
     );
 };
-
 
 export default PracticePage;

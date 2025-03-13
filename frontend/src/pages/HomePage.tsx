@@ -1,10 +1,35 @@
 import React, { useContext } from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { WelcomeFeatureCard } from '../components';
 
 const HomePage: React.FC = () => {
-  const { currentUser } = useContext(AuthContext);
+  const auth = useContext(AuthContext);
+  const currentUser = auth?.currentUser;
+
+  const features = [
+    {
+      icon: 'fas fa-upload',
+      title: 'Upload Lists',
+      description: 'Create custom word lists by uploading CSV files with words, meanings, and example sentences.'
+    },
+    {
+      icon: 'fas fa-volume-up',
+      title: 'Audio Practice',
+      description: 'Listen to word pronunciations and practice spelling them correctly. Perfect your spelling through audio-based learning.'
+    },
+    {
+      icon: 'fas fa-graduation-cap',
+      title: 'Smart Review',
+      description: 'Our spaced repetition system helps you review words at optimal intervals to maximize learning efficiency and retention.'
+    },
+    {
+      icon: 'fas fa-chart-line',
+      title: 'Track Progress',
+      description: 'Monitor your improvement with detailed statistics and progress tracking for each word and list.'
+    }
+  ];
 
   return (
     <Container className="py-5">
@@ -28,57 +53,11 @@ const HomePage: React.FC = () => {
       </Row>
 
       <Row xs={1} md={2} lg={4} className="g-4 mb-5">
-        <Col>
-          <Card className="h-100 text-center p-4">
-            <Card.Body>
-              <i className="fas fa-upload fa-3x mb-3 text-primary"></i>
-              <h3>Upload Lists</h3>
-              <p>
-                Create custom word lists by uploading CSV files with words, meanings,
-                and example sentences.
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col>
-          <Card className="h-100 text-center p-4">
-            <Card.Body>
-              <i className="fas fa-volume-up fa-3x mb-3 text-primary"></i>
-              <h3>Audio Practice</h3>
-              <p>
-                Listen to word pronunciations and practice spelling them correctly.
-                Perfect your spelling through audio-based learning.
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col>
-          <Card className="h-100 text-center p-4">
-            <Card.Body>
-              <i className="fas fa-graduation-cap fa-3x mb-3 text-primary"></i>
-              <h3>Smart Review</h3>
-              <p>
-                Our spaced repetition system helps you review words at optimal intervals
-                to maximize learning efficiency and retention.
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col>
-          <Card className="h-100 text-center p-4">
-            <Card.Body>
-              <i className="fas fa-chart-line fa-3x mb-3 text-primary"></i>
-              <h3>Track Progress</h3>
-              <p>
-                Monitor your improvement with detailed statistics and progress tracking
-                for each word and list.
-              </p>
-            </Card.Body>
-          </Card>
-        </Col>
+        {features.map((feature, index) => (
+          <Col key={index}>
+            <WelcomeFeatureCard {...feature} />
+          </Col>
+        ))}
       </Row>
 
       {currentUser && (
