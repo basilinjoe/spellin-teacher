@@ -51,7 +51,7 @@ const PracticePage = () => {
       
       const data = await practiceAPI.getWordForPractice(listId, speed);
       setCurrentWord(data);
-      setAudioUrl(process.env.REACT_APP_API_URL.slice(0,-1) + data.audio_url);
+      setAudioUrl(primport.meta.env.REACT_APP_API_URL.slice(0,-1) + data.audio_url);
     } catch (err) {
       setError('Failed to get next word. Please try again later.');
       console.error('Error getting next word:', err);

@@ -45,7 +45,7 @@ const ReviewPage = () => {
       if (reviewData.length > 0 && !currentWord) {
         const word = reviewData[0];
         setCurrentWord(word);
-        setAudioUrl(process.env.REACT_APP_API_URL.slice(0,-1) + word.audio_url);
+        setAudioUrl(import.meta.env.REACT_APP_API_URL.slice(0,-1) + word.audio_url);
       }
     } catch (err) {
       setError('Failed to load review data. Please try again later.');
@@ -93,7 +93,7 @@ const ReviewPage = () => {
     const nextWord = reviewWords[reviewWords.indexOf(currentWord) + 1];
     if (nextWord) {
       setCurrentWord(nextWord);
-      setAudioUrl(process.env.REACT_APP_API_URL.slice(0,-1) + nextWord.audio_url);
+      setAudioUrl(import.meta.env.REACT_APP_API_URL.slice(0,-1) + nextWord.audio_url);
       setUserInput('');
       setResult(null);
     } else {

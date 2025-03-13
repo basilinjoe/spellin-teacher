@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base URL and default config
 export const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },
