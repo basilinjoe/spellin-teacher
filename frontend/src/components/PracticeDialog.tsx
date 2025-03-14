@@ -4,12 +4,15 @@ import {
     ErrorAlert,
     AudioPlayButton,
     PracticeResultCard,
+    LoadingSpinner,
 } from '../components';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface PracticeDialogProps {
     open: boolean;
@@ -25,11 +28,11 @@ interface Word {
     audio_url: string;
 }
 
-export const PracticeDialog: React.FC<PracticeDialogProps> = ({ 
-    open, 
-    onOpenChange, 
+export const PracticeDialog: React.FC<PracticeDialogProps> = ({
+    open,
+    onOpenChange,
     listId,
-    listName 
+    listName
 }) => {
     const [currentWord, setCurrentWord] = useState<Word | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -118,106 +121,141 @@ export const PracticeDialog: React.FC<PracticeDialogProps> = ({
             const timeoutId = setTimeout(() => {
                 playAudio();
             }, 500); // Small delay to ensure audio is loaded
-            
+
             return () => clearTimeout(timeoutId);
         }
     }, [currentWord, audioUrl, result, playAudio, open]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Practice: {listName}</DialogTitle>
+                    <DialogTitle className="text-xl">{listName ? `Practice: ${listName}` : 'Practice'}</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6">
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="speed"
-                            checked={speed === 'slow'}
-                            onCheckedChange={(checked) => setSpeed(checked ? 'slow' : 'normal')}
-                        />
-                        <Label htmlFor="speed">Slow pronunciation</Label>
-                    </div>
 
                     <ErrorAlert error={error} onDismiss={() => setError('')} />
 
-                    {loading && !currentWord ? (
-                        <div className="py-8 text-center">Loading...</div>
-                    ) : currentWord ? (
-                        <div className="space-y-6">
-                            {result ? (
-                                <div className="space-y-4">
-                                    <PracticeResultCard {...result} userInput={userInput} />
-                                    <div className="grid gap-2">
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNextWord}
-                                            disabled={loading}
-                                        >
-                                            Next Word (Press Enter or Space)
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => onOpenChange(false)}
-                                        >
-                                            Close
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    <AudioPlayButton
-                                        onClick={playAudio}
-                                        disabled={loading || !audioUrl}
-                                    />
-
-                                    <form onSubmit={handleSubmit} className="space-y-4">
-                                        <div className="space-y-2">
-                                            <Input
-                                                type="text"
-                                                placeholder="Type the word here and press Enter"
-                                                value={userInput}
-                                                onChange={(e) => setUserInput(e.target.value)}
-                                                autoComplete="off"
-                                                autoFocus
-                                            />
-                                        </div>
-
+                    <AnimatePresence mode="wait">
+                        {loading && !currentWord ? (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="py-8"
+                            >
+                                <LoadingSpinner center size="lg" />
+                            </motion.div>
+                        ) : currentWord ? (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="space-y-6"
+                            >
+                                {result ? (
+                                    <div className="space-y-4">
+                                        <PracticeResultCard {...result} userInput={userInput} />
                                         <div className="flex gap-2">
                                             <Button
-                                                type="submit"
-                                                size="lg"
-                                                className="flex-1"
-                                                disabled={loading || !userInput.trim()}
-                                            >
-                                                Submit
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
                                                 size="lg"
                                                 onClick={handleNextWord}
                                                 disabled={loading}
+                                                className="flex-1 font-medium"
                                             >
-                                                Skip
+                                                Next Word
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={() => onOpenChange(false)}
+                                            >
+                                                Close
                                             </Button>
                                         </div>
-                                    </form>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8">
-                            <h3 className="text-lg font-semibold mb-2">No Words to Practice</h3>
-                            <p className="text-muted-foreground mb-4">
-                                There are no words available for practice in this list.
-                            </p>
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>
-                                Close
-                            </Button>
-                        </div>
-                    )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <Card className="border-none shadow-none bg-muted/30">
+                                            <CardContent className="flex flex-col items-center justify-center pt-6 pb-6">
+                                                <AudioPlayButton
+                                                    onClick={playAudio}
+                                                    disabled={loading || !audioUrl}
+                                                    size="lg"
+                                                />
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Switch
+                                                            id="speed"
+                                                            checked={speed === 'slow'}
+                                                            onCheckedChange={(checked) => setSpeed(checked ? 'slow' : 'normal')}
+                                                        />
+                                                        <Label htmlFor="speed" className="text-sm">Slow pronunciation</Label>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <form onSubmit={handleSubmit} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Type the word here and press Enter"
+                                                    value={userInput}
+                                                    onChange={(e) => setUserInput(e.target.value)}
+                                                    autoComplete="off"
+                                                    autoFocus
+                                                    className="text-lg h-12"
+                                                />
+                                            </div>
+
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    type="submit"
+                                                    size="lg"
+                                                    className="flex-1 font-medium"
+                                                    disabled={loading || !userInput.trim()}
+                                                >
+                                                    Submit
+                                                </Button>
+                                                <motion.div
+                                                    whileTap={{ scale: 0.95 }}
+                                                    whileHover={{ scale: 1.05 }}
+                                                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                                >
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="lg"
+                                                        onClick={handleNextWord}
+                                                        disabled={loading}
+                                                    >
+                                                        Skip
+                                                    </Button>
+                                                </motion.div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                )}
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="text-center py-8"
+                            >
+                                <h3 className="text-lg font-semibold mb-2">No Words to Practice</h3>
+                                <p className="text-muted-foreground mb-4">
+                                    There are no words available for practice in this list.
+                                </p>
+                                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                                    Close
+                                </Button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </DialogContent>
         </Dialog>

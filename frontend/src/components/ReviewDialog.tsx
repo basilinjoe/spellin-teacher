@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PracticeResultProps } from '@/components/PracticeResultCard';
+import { motion } from "framer-motion";
 
 interface ReviewDialogProps {
     open: boolean;
@@ -174,15 +175,21 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({ open, onOpenChange }
                                         >
                                             Submit
                                         </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="lg"
-                                            onClick={fetchNextWord}
-                                            disabled={isSubmitting}
+                                        <motion.div
+                                            whileTap={{ scale: 0.95 }}
+                                            whileHover={{ scale: 1.05 }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
                                         >
-                                            Skip
-                                        </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="lg"
+                                                onClick={fetchNextWord}
+                                                disabled={isSubmitting}
+                                            >
+                                                Skip
+                                            </Button>
+                                        </motion.div>
                                     </div>
                                 </form>
                             </div>

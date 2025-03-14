@@ -1,10 +1,13 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { ExtendedPracticeResponse } from '@/services';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
+import { Check, X } from "lucide-react";
 
 export interface PracticeResultProps extends ExtendedPracticeResponse {
-  userInput: string;// Updated to match the API response
+  userInput: string;
 }
 
 const PracticeResultCard: React.FC<PracticeResultProps> = ({
@@ -20,63 +23,96 @@ const PracticeResultCard: React.FC<PracticeResultProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
       <Card>
-        <CardContent className="pt-6 space-y-4">
-          {!correct && (
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">Your attempt:</p>
-              <div
-                className="text-xl"
-                dangerouslySetInnerHTML={{
-                  __html: getHighlightedWord(userInput, word)
-                }}
-              />
-            </div>
-          )}
-
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              {correct ? 'Word:' : 'Correct spelling:'}
-            </p>
-            <p className="text-xl font-medium">{word}</p>
-          </div>
-
-          {meaning && (
-            <div>
-              <p className="text-sm font-medium mb-1">Meaning:</p>
-              <p className="text-muted-foreground">{meaning}</p>
-            </div>
-          )}
-
-          {example && (
-            <div>
-              <p className="text-sm font-medium mb-1">Example:</p>
-              <p className="text-muted-foreground italic">{example}</p>
-            </div>
-          )}
-
-          {mistake_patterns && mistake_patterns.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2">Mistake Patterns:</p>
-              {mistake_patterns.map((pattern, index) => (
-                <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2 mb-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm">{pattern.description}</p>
-                    <Badge variant="secondary">{pattern.pattern_type}</Badge>
-                  </div>
-                  {pattern.examples && pattern.examples.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Similar mistakes: {pattern.examples.join(', ')}
-                    </p>
-                  )}
+        <ScrollArea className="h-[300px]">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center gap-2">
+              {correct ? (
+                <div className="rounded-full bg-green-500/10 p-3">
+                  <Check className="h-6 w-6 text-green-500" />
                 </div>
-              ))}
+              ) : (
+                <div className="rounded-full bg-destructive/10 p-3">
+                  <X className="h-6 w-6 text-destructive" />
+                </div>
+              )}
             </div>
-          )}
-        </CardContent>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {!correct && (
+              <div className="rounded-lg border bg-muted/40 px-4 py-3 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Your attempt:</p>
+                <div
+                  className="text-xl"
+                  dangerouslySetInnerHTML={{
+                    __html: getHighlightedWord(userInput, word)
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="rounded-lg border bg-card px-4 py-3 text-center">
+              <p className="text-sm text-muted-foreground mb-1">
+                {correct ? 'Word:' : 'Correct spelling:'}
+              </p>
+              <p className="text-xl font-medium">{word}</p>
+            </div>
+
+            {(meaning || example) && (
+              <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-4">
+                {meaning && (
+                  <div>
+                    <p className="text-sm font-medium mb-1">Meaning:</p>
+                    <p className="text-muted-foreground">{meaning}</p>
+                  </div>
+                )}
+
+                {example && (
+                  <div>
+                    <p className="text-sm font-medium mb-1">Example:</p>
+                    <p className="text-muted-foreground italic">{example}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mistake_patterns && mistake_patterns.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Mistake Patterns:</p>
+
+                <div className="p-4 space-y-3">
+                  {mistake_patterns.map((pattern, index) => (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      key={index}
+                      className="rounded-lg border bg-background p-3 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm">{pattern.description}</p>
+                        <Badge variant="secondary" className="shrink-0">{pattern.pattern_type}</Badge>
+                      </div>
+                      {pattern.examples && pattern.examples.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Similar mistakes: {pattern.examples.join(', ')}
+                        </p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </ScrollArea>
       </Card>
-    </div>
+    </motion.div>
   );
 };
 
