@@ -12,6 +12,16 @@ export const ttsService = {
     }
   },
 
+  generateWordListAudio: async (wordListId: number, speed: 'slow' | 'normal' = 'normal'): Promise<TTSResponse> => {
+    try {
+      const response = await axiosInstance.post<TTSResponse>(`/api/v1/tts/word-list/${wordListId}/generate`, { speed });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating word list audio:', error);
+      throw new Error(extractErrorMessage(error));
+    }
+  },
+
   getAudioUrl
 };
 

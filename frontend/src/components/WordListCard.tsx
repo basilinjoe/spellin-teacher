@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/card';
 import { Progress } from './ui/progress';
-import { Pencil, Trash2, BookOpen, ChartBar } from 'lucide-react';
+import { Pencil, Trash2, BookOpen, ChartBar, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GenerateAudioDialog } from './GenerateAudioDialog';
 
 interface WordListProps {
   id: number;
@@ -31,6 +32,7 @@ const WordListCard: React.FC<WordListProps> = ({
 }) => {
   const navigate = useNavigate();
   const progressPercentage = stats ? (stats.practiced_words / stats.total_words) * 100 : 0;
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
 
   return (
     <Card className="h-full flex flex-col">
@@ -38,6 +40,15 @@ const WordListCard: React.FC<WordListProps> = ({
         <CardTitle className="flex justify-between items-start gap-4">
           <span className="line-clamp-2">{name}</span>
           <div className="flex gap-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowGenerateDialog(true)}
+              title="Generate audio"
+              className="hover:text-primary"
+            >
+              <Volume2 className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -117,6 +128,12 @@ const WordListCard: React.FC<WordListProps> = ({
           Created {new Date(created_at).toLocaleDateString()}
         </p>
       </CardFooter>
+
+      <GenerateAudioDialog
+        open={showGenerateDialog}
+        onOpenChange={setShowGenerateDialog}
+        wordListId={id}
+      />
     </Card>
   );
 };
