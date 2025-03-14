@@ -1,16 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { SRSStatusCard, PageContainer } from '../components';
+import { SRSStatusCard, PageContainer, ReviewDialog } from '../components';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 
-interface HomePageProps {
-    onReviewClick: () => void;
-}
-
-const HomePage: React.FC<HomePageProps> = ({ onReviewClick }) => {
+const HomePage: React.FC = () => {
     const { currentUser } = React.useContext(AuthContext) || {};
+    const [reviewOpen, setReviewOpen] = useState(false);
 
     if (!currentUser) {
         return (
@@ -43,7 +40,7 @@ const HomePage: React.FC<HomePageProps> = ({ onReviewClick }) => {
     return (
         <PageContainer>
             <div className="max-w-2xl mx-auto space-y-6">
-                <SRSStatusCard onReviewClick={onReviewClick} />
+                <SRSStatusCard onReviewClick={() => setReviewOpen(true)} />
                 
                 <Card>
                     <CardHeader>
@@ -65,6 +62,11 @@ const HomePage: React.FC<HomePageProps> = ({ onReviewClick }) => {
                     </CardContent>
                 </Card>
             </div>
+
+            <ReviewDialog 
+                open={reviewOpen}
+                onOpenChange={setReviewOpen}
+            />
         </PageContainer>
     );
 };

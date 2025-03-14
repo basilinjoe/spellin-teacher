@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PageContainer, PageHeader, StatsCard } from '@/components';
+import { PageContainer, PageHeader, StatsCard, ReviewDialog } from '@/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { reviewService, practiceService, wordListService } from '@/services';
@@ -22,6 +22,7 @@ interface DashboardStats {
 }
 
 const DashboardPage = () => {
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -188,6 +189,11 @@ const DashboardPage = () => {
           </Card>
         </div>
       </div>
+
+      <ReviewDialog 
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+      />
     </PageContainer>
   );
 };

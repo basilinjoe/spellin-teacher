@@ -157,15 +157,14 @@ const WordListsPage: React.FC = () => {
                     description="Create and manage your vocabulary lists"
                     actions={
                         <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={handleUploadClick}
-                                className="gap-2"
-                            >
-                                <Upload className="h-4 w-4" />
-                                Import CSV
+                            <Button variant="outline"
+                                onClick={() => setShowReviewDialog(true)}
+                                className="gap-2">
+                                Review Words
                             </Button>
-                            <Button onClick={() => setShowUploadModal(true)} className="gap-2">
+                            <Button variant="outline"
+                                onClick={handleUploadClick}
+                                className="gap-2">
                                 <Plus className="h-4 w-4" />
                                 Create List
                             </Button>
