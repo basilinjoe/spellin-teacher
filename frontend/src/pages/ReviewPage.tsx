@@ -158,14 +158,25 @@ const ReviewPage: React.FC = () => {
                                         />
                                     </div>
 
-                                    <Button
-                                        type="submit"
-                                        size="lg"
-                                        className="w-full"
-                                        disabled={isSubmitting || !userInput.trim()}
-                                    >
-                                        {isSubmitting ? 'Submitting...' : 'Submit'}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="submit"
+                                            size="lg"
+                                            className="flex-1"
+                                            disabled={isSubmitting || !userInput.trim()}
+                                        >
+                                            Submit
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="lg"
+                                            onClick={fetchNextWord}
+                                            disabled={isSubmitting}
+                                        >
+                                            Skip
+                                        </Button>
+                                    </div>
                                 </form>
                             </div>
                         )}

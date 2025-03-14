@@ -189,14 +189,25 @@ const PracticePage: React.FC = () => {
                                     />
                                 </div>
 
-                                <Button
-                                    type="submit"
-                                    size="lg"
-                                    className="w-full"
-                                    disabled={loading || !userInput.trim()}
-                                >
-                                    Submit
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="submit"
+                                        size="lg"
+                                        className="flex-1"
+                                        disabled={loading || !userInput.trim()}
+                                    >
+                                        Submit
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="lg"
+                                        onClick={handleNextWord}
+                                        disabled={loading}
+                                    >
+                                        Skip
+                                    </Button>
+                                </div>
                             </form>
                         </div>
                     )}
