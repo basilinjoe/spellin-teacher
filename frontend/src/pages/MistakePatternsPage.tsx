@@ -55,9 +55,15 @@ const MistakePatternsPage: React.FC = () => {
                 setLoading(true);
                 const [listsData, patternsData] = await Promise.all([
                     wordListService.getWordLists(),
-                    practiceService.getMistakePatterns(listId)
+                    practiceService.getMistakePatterns(Number(listId))
                 ]);
-                setWordList(listsData);
+                
+                // Find the specific word list by ID
+                const currentList = listId 
+                    ? listsData.find(list => list.id === parseInt(listId))
+                    : null;
+                    
+                setWordList(currentList);
                 setPatterns(patternsData);
             } catch (error) {
                 console.error('Error fetching data:', error);

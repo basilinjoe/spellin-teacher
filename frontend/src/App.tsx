@@ -6,7 +6,6 @@ import { PageProvider, usePage } from './contexts/PageProvider';
 import NavigationBar from './components/NavigationBar';
 import ProtectedRoute from './components/ProtectedRoute';
 import { LoadingBar } from './components/LoadingBar';
-import { cn } from '@/lib/utils';
 import { AnimatePresence } from 'framer-motion';
 
 // Pages
@@ -15,7 +14,6 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WordListsPage from './pages/WordListsPage';
-import PracticePage from './pages/PracticePage';
 import ProgressPage from './pages/ProgressPage';
 import MistakePatternsPage from './pages/MistakePatternsPage';
 
@@ -81,11 +79,7 @@ const MainContent: React.FC<MainContentProps> = () => {
               <WordListsPage />
             </ProtectedRoute>
           } />
-          <Route path="/practice/:listId" element={
-            <ProtectedRoute>
-              <PracticePage />
-            </ProtectedRoute>
-          } />
+          
           <Route path="/progress/:listId" element={
             <ProtectedRoute>
               <ProgressPage />
