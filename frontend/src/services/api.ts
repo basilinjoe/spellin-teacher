@@ -54,6 +54,17 @@ interface TTSResponse {
   failed: number;
 }
 
+interface MistakePatternResponse {
+  pattern_type: string;
+  description: string;
+  examples: string[];
+  count: number;
+  word?: {
+    id: number;
+    word: string;
+  };
+}
+
 // Backend API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -249,22 +260,26 @@ export const practiceAPI = {
     }
   },
 
-  submitPractice: async (wordId: number, userSpelling: string): Promise<PracticeResponse> => {
+  submitPractice: async (wordId: number, attempt: string): Promise<{
+    correct: boolean;
+    mistake_pattern?: {
+      pattern_type: string;
+      description: string;
+      examples: string[];
+    };
+    word: string;
+    meaning?: string;
+    example?: string;
+    similar_words?: string[];
+  }> => {
     try {
-      // Explicitly create the request body and log it for debugging
-      const requestBody = {
-        word_id: wordId,  // This is correct - using word_id as the property name
-        user_spelling: userSpelling,
-      };
-      console.log('Submit practice request body:', requestBody);
-      
-      const response = await axiosInstance.post<PracticeResponse>('/api/v1/practice/submit', requestBody);
+      const response = await axiosInstance.post('/api/v1/practice/submit', {
+        word_id: wordId,
+        attempt
+      });
       return response.data;
     } catch (error) {
       console.error('Error submitting practice:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 422) {
-        console.error('Validation error details:', error.response.data);
-      }
       throw new Error(extractErrorMessage(error));
     }
   },
@@ -279,7 +294,7 @@ export const practiceAPI = {
     }
   },
 
-  getMistakePatterns: async (wordListId?: number | null): Promise<Array<{ pattern: string; count: number }>> => {
+  getMistakePatterns: async (wordListId?: number | null): Promise<MistakePatternResponse[]> => {
     try {
       const url = '/api/v1/practice/mistake-patterns' + (wordListId ? `?word_list_id=${wordListId}` : '');
       const response = await axiosInstance.get(url);

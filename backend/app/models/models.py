@@ -46,6 +46,10 @@ class MistakePattern(Base):
     # Relationships
     word = relationship("Word", back_populates="mistake_patterns")
 
+    __table_args__ = (
+        CheckConstraint('frequency >= 0', name='check_frequency_non_negative'),
+    )
+
 
 class Word(Base):
     __tablename__ = "words"

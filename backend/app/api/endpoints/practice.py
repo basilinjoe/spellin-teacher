@@ -8,7 +8,7 @@ import random
 
 from app.core.database import get_db
 from app.models.models import Word, WordList, User, MistakePattern
-from app.schemas.schemas import PracticeRequest, PracticeResponse, PracticeSubmitRequest, PracticeResult, MistakePatternResponse
+from app.schemas.schemas import PracticeRequest, PracticeResponse, PracticeSubmitRequest, PracticeResult, MistakePatternResponse, WordBase, WordForPattern
 from app.services.tts_service import tts_service
 from app.services.dictionary_service import dictionary_service
 from app.services.mistake_pattern_service import mistake_pattern_service
@@ -142,7 +142,8 @@ async def submit_practice(
                 word_id=word.id,
                 pattern_type=pattern["pattern_type"],
                 description=pattern["description"],
-                examples=[request.user_spelling]
+                examples=[request.user_spelling],
+                frequency=1
             )
             db.add(new_pattern)
     
@@ -167,15 +168,30 @@ async def submit_practice(
         except Exception as e:
             print(f"Error getting dictionary data: {e}")
     
-    return {
-        "word_id": word.id,
-        "word": word.word,
-        "correct": is_correct,
-        "correct_spelling": word.word,
-        "meaning": word.meaning,
-        "example": word.example,
-        "mistake_patterns": word.mistake_patterns
-    }
+    # Transform mistake patterns for response using the updated schema
+    mistake_patterns = [
+        MistakePatternResponse(
+            pattern_type=p.pattern_type,
+            description=p.description,
+            examples=p.examples,
+            count=p.frequency,
+            word=WordForPattern(
+                id=word.id,
+                word=word.word
+            )
+        )
+        for p in word.mistake_patterns
+    ]
+    
+    return PracticeResult(
+        word_id=word.id,
+        word=word.word,
+        correct=is_correct,
+        correct_spelling=word.word,
+        meaning=word.meaning,
+        example=word.example,
+        mistake_patterns=mistake_patterns
+    )
 
 
 @router.get("/{word_list_id}/stats")
@@ -239,7 +255,7 @@ async def get_mistake_patterns(
     """
     query = (
         select(MistakePattern)
-        .options(joinedload(MistakePattern.word))
+        .options(joinedload(MistakePattern.word))  # Eager load the word relationship
         .join(Word)
         .join(WordList)
         .filter(WordList.owner_id == current_user.id)
@@ -251,4 +267,17 @@ async def get_mistake_patterns(
     result = await db.execute(query)
     patterns = result.unique().scalars().all()
     
-    return patterns
+    # Transform the patterns to match the response schema
+    return [
+        MistakePatternResponse(
+            pattern_type=pattern.pattern_type,
+            description=pattern.description,
+            examples=pattern.examples,
+            count=pattern.frequency,
+            word=WordForPattern(
+                id=pattern.word.id,
+                word=pattern.word.word
+            ) if pattern.word else None
+        )
+        for pattern in patterns
+    ]

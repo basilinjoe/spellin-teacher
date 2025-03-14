@@ -27,8 +27,14 @@ interface WordList {
 }
 
 interface MistakePatternResponse {
-    pattern: string;
+    pattern_type: string;
+    description: string;
+    examples: string[];
     count: number;
+    word?: {
+        id: number;
+        word: string;
+    };
 }
 
 type RouteParams = {
@@ -71,14 +77,33 @@ const MistakePatternsPage: React.FC = () => {
     };
 
     const transformPatterns = (patterns: MistakePatternResponse[]): { [key: string]: MistakePattern[] } => {
-        return {
-            'mistake': patterns.map((p, index) => ({
-                id: index,
-                description: p.pattern,
+        // Group patterns by type
+        const groupedPatterns = patterns.reduce((acc, p) => {
+            const type = p.pattern_type || 'other';
+            if (!acc[type]) {
+                acc[type] = [];
+            }
+            
+            acc[type].push({
+                id: acc[type].length, // Use array index as ID within each group
+                word: p.word,
+                description: p.description,
                 frequency: p.count,
-                examples: []
-            }))
-        };
+                examples: p.examples
+            });
+            
+            return acc;
+        }, {} as { [key: string]: MistakePattern[] });
+
+        // Sort types by total frequency
+        const sortedGroups = Object.entries(groupedPatterns)
+            .sort(([, patternsA], [, patternsB]) => {
+                const totalA = patternsA.reduce((sum, p) => sum + p.frequency, 0);
+                const totalB = patternsB.reduce((sum, p) => sum + p.frequency, 0);
+                return totalB - totalA;
+            });
+
+        return Object.fromEntries(sortedGroups);
     };
 
     if (loading) {
@@ -89,12 +114,18 @@ const MistakePatternsPage: React.FC = () => {
         <PageContainer>
             <PageHeader 
                 title={wordList ? `${wordList.name} - Mistake Patterns` : 'All Mistake Patterns'}
-                description={wordList?.description}
+                description={wordList?.description || 'Analysis of common spelling mistake patterns'}
             />
 
             {error ? (
                 <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            ) : patterns.length === 0 ? (
+                <Alert>
+                    <AlertDescription>
+                        No mistake patterns found. Keep practicing to see your common spelling mistakes!
+                    </AlertDescription>
                 </Alert>
             ) : (
                 <MistakePatternTable patterns={transformPatterns(patterns)} />
