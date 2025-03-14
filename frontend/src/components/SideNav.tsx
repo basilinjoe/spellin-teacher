@@ -7,7 +7,6 @@ import {
   List, 
   GraduationCap, 
   AlertTriangle, 
-  Volume2,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -35,11 +34,6 @@ const SideNav: React.FC = () => {
       name: 'Mistake Patterns',
       path: '/mistake-patterns',
       icon: <AlertTriangle className="h-5 w-5" />
-    },
-    {
-      name: 'Generate Audio',
-      path: '/audio-generation',
-      icon: <Volume2 className="h-5 w-5" />
     }
   ];
 

@@ -16,7 +16,6 @@ import PracticePage from './pages/PracticePage';
 import ProgressPage from './pages/ProgressPage';
 import MistakePatternsPage from './pages/MistakePatternsPage';
 import ReviewPage from './pages/ReviewPage';
-import AudioGenerationPage from './pages/AudioGenerationPage';
 
 import './App.css';
 
@@ -77,11 +76,6 @@ const MainContent: React.FC = () => {
         <Route path="/review" element={
           <ProtectedRoute>
             <ReviewPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/audio-generation" element={
-          <ProtectedRoute>
-            <AudioGenerationPage />
           </ProtectedRoute>
         } />
       </Routes>
