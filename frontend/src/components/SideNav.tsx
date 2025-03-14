@@ -4,8 +4,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import { cn } from '@/lib/utils';
 import { 
+  LayoutDashboard,
   List, 
-  GraduationCap, 
   AlertTriangle, 
   ChevronLeft,
   ChevronRight
@@ -21,14 +21,14 @@ const SideNav: React.FC = () => {
 
   const navItems = [
     {
+      name: 'Dashboard',
+      path: '/',
+      icon: <LayoutDashboard className="h-5 w-5" />
+    },
+    {
       name: 'Word Lists',
       path: '/word-lists',
       icon: <List className="h-5 w-5" />
-    },
-    {
-      name: 'Review',
-      path: '/review',
-      icon: <GraduationCap className="h-5 w-5" />
     },
     {
       name: 'Mistake Patterns',

@@ -10,6 +10,7 @@ import { ReviewDialog } from './components/ReviewDialog';
 
 // Pages
 import HomePage from './pages/HomePage';
+import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WordListsPage from './pages/WordListsPage';
@@ -52,7 +53,12 @@ const MainContent: React.FC<MainContentProps> = ({ onReviewClick }) => {
   return (
     <main className={`flex-1 p-4 transition-all duration-300 ${collapsed ? 'md:ml-0' : ''}`}>
       <Routes>
-        <Route path="/" element={<HomePage onReviewClick={onReviewClick} />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/home" element={<HomePage onReviewClick={onReviewClick} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/word-lists" element={

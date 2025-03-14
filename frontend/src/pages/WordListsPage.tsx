@@ -7,7 +7,6 @@ import {
     WordListCard,
     WordListForm,
     ConfirmationModal,
-    SRSStatusCard,
     UploadWordListDialog,
     ReviewDialog 
 } from '../components';
@@ -15,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Plus, Upload } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WordList {
     id: number;
@@ -149,71 +149,108 @@ const WordListsPage: React.FC = () => {
         return filtered;
     };
 
-    if (loading) {
-        return <LoadingSpinner />;
-    }
-
     return (
         <PageContainer>
-            <PageHeader 
-                title="Word Lists"
-                actions={
-                    <Button onClick={handleUploadClick}>
-                        Upload List
-                    </Button>
-                }
-            />
+            <div className="space-y-8">
+                <PageHeader 
+                    title="Word Lists"
+                    description="Create and manage your vocabulary lists"
+                    actions={
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={handleUploadClick}
+                                className="gap-2"
+                            >
+                                <Upload className="h-4 w-4" />
+                                Import CSV
+                            </Button>
+                            <Button onClick={() => setShowUploadModal(true)} className="gap-2">
+                                <Plus className="h-4 w-4" />
+                                Create List
+                            </Button>
+                        </div>
+                    }
+                />
 
-            <SRSStatusCard onReviewClick={() => setShowReviewDialog(true)} />
-
-            <div className="mb-6 flex gap-4">
-                <div className="relative flex-1">
-                    <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search word lists..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-                <Select value={sortBy} onValueChange={(value: 'name' | 'created' | 'progress') => setSortBy(value)}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="name">Sort by Name</SelectItem>
-                        <SelectItem value="created">Sort by Created Date</SelectItem>
-                        <SelectItem value="progress">Sort by Progress</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {getSortedAndFilteredLists().length === 0 ? (
-                <div className="text-center py-12">
-                    <i className="fas fa-list text-4xl mb-4 text-muted-foreground"></i>
-                    <h3 className="text-xl font-semibold mb-2">No Word Lists Found</h3>
-                    <p className="text-muted-foreground mb-4">
-                        {search ? 'Try different search terms' : 'Upload your first word list to start practicing'}
-                    </p>
-                    {!search && (
-                        <Button onClick={handleUploadClick}>
-                            Upload Word List
-                        </Button>
-                    )}
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {getSortedAndFilteredLists().map((list) => (
-                        <WordListCard
-                            key={list.id}
-                            {...list}
-                            stats={wordListStats[list.id]}
-                            onEdit={() => handleEdit(list)}
-                            onDelete={() => handleDelete(list)}
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search word lists..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-9"
                         />
-                    ))}
+                    </div>
+                    <Select value={sortBy} onValueChange={(value: 'name' | 'created' | 'progress') => setSortBy(value)}>
+                        <SelectTrigger className="w-[180px] shrink-0">
+                            <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="name">Sort by Name</SelectItem>
+                            <SelectItem value="created">Sort by Created Date</SelectItem>
+                            <SelectItem value="progress">Sort by Progress</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-            )}
+
+                <AnimatePresence mode="wait">
+                    {loading ? (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex justify-center py-12"
+                        >
+                            <LoadingSpinner />
+                        </motion.div>
+                    ) : getSortedAndFilteredLists().length === 0 ? (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="text-center py-12 space-y-4"
+                        >
+                            <div className="rounded-full bg-muted w-16 h-16 mx-auto flex items-center justify-center">
+                                <Upload className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-xl font-semibold">No Word Lists Found</h3>
+                            <p className="text-muted-foreground max-w-sm mx-auto">
+                                {search ? 'Try different search terms or clear the search' : 'Upload your first word list to start practicing'}
+                            </p>
+                            {!search && (
+                                <Button onClick={handleUploadClick} className="gap-2">
+                                    <Upload className="h-4 w-4" />
+                                    Upload Word List
+                                </Button>
+                            )}
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                        >
+                            {getSortedAndFilteredLists().map((list) => (
+                                <motion.div
+                                    key={list.id}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <WordListCard
+                                        {...list}
+                                        stats={wordListStats[list.id]}
+                                        onEdit={() => handleEdit(list)}
+                                        onDelete={() => handleDelete(list)}
+                                    />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
 
             <UploadWordListDialog 
                 open={showUploadModal}
