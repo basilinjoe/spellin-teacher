@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeProvider';
+import { SidebarProvider, useSidebar } from './contexts/SidebarContext';
 import NavigationBar from './components/NavigationBar';
 import SideNav from './components/SideNav';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -25,62 +26,72 @@ const App: React.FC = () => {
     <ThemeProvider defaultTheme="light" storageKey="spelling-teacher-theme">
       <Router future={{ v7_relativeSplatPath: true }}>
         <AuthProvider>
-          <div className="min-h-screen bg-background">
-            <NavigationBar />
-            <div className="flex">
-              <SideNav />
-              <main className="flex-1 p-4">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/word-lists" element={
-                    <ProtectedRoute>
-                      <WordListsPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/upload" element={
-                    <ProtectedRoute>
-                      <UploadPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/practice/:listId" element={
-                    <ProtectedRoute>
-                      <PracticePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/progress/:listId" element={
-                    <ProtectedRoute>
-                      <ProgressPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/mistake-patterns" element={
-                    <ProtectedRoute>
-                      <MistakePatternsPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/mistake-patterns/:listId" element={
-                    <ProtectedRoute>
-                      <MistakePatternsPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/review" element={
-                    <ProtectedRoute>
-                      <ReviewPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/audio-generation" element={
-                    <ProtectedRoute>
-                      <AudioGenerationPage />
-                    </ProtectedRoute>
-                  } />
-                </Routes>
-              </main>
+          <SidebarProvider>
+            <div className="min-h-screen bg-background">
+              <NavigationBar />
+              <div className="flex">
+                <SideNav />
+                <MainContent />
+              </div>
             </div>
-          </div>
+          </SidebarProvider>
         </AuthProvider>
       </Router>
     </ThemeProvider>
+  );
+};
+
+const MainContent: React.FC = () => {
+  const { collapsed } = useSidebar();
+  
+  return (
+    <main className={`flex-1 p-4 transition-all duration-300 ${collapsed ? 'md:ml-0' : ''}`}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/word-lists" element={
+          <ProtectedRoute>
+            <WordListsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/upload" element={
+          <ProtectedRoute>
+            <UploadPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/practice/:listId" element={
+          <ProtectedRoute>
+            <PracticePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/progress/:listId" element={
+          <ProtectedRoute>
+            <ProgressPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/mistake-patterns" element={
+          <ProtectedRoute>
+            <MistakePatternsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/mistake-patterns/:listId" element={
+          <ProtectedRoute>
+            <MistakePatternsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/review" element={
+          <ProtectedRoute>
+            <ReviewPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/audio-generation" element={
+          <ProtectedRoute>
+            <AudioGenerationPage />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </main>
   );
 };
 
