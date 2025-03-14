@@ -1,8 +1,16 @@
 /* Custom styles that extend Tailwind/shadcn */
 
+/* Animation timing variables */
+:root {
+  --transition-duration-fast: 150ms;
+  --transition-duration-base: 300ms;
+  --transition-duration-slow: 500ms;
+  --transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Audio button animation */
 .practice-audio-button {
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-duration-fast) var(--transition-timing-function);
 }
 
 .practice-audio-button:hover {
@@ -29,13 +37,63 @@
 
 ::-webkit-scrollbar-track {
   background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground));
   border-radius: 4px;
 }
 
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground)/0.3);
+  border-radius: 4px;
+  transition: background-color var(--transition-duration-fast) var(--transition-timing-function);
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  opacity: 0.8;
+  background: hsl(var(--muted-foreground)/0.5);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improved transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: var(--transition-timing-function);
+  transition-duration: var(--transition-duration-fast);
+}
+
+/* Remove transition from specific elements */
+.no-transition {
+  transition: none !important;
+}
+
+/* Improved focus styles */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  transition: outline-offset var(--transition-duration-fast) var(--transition-timing-function);
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: opacity var(--transition-duration-base) var(--transition-timing-function),
+              transform var(--transition-duration-base) var(--transition-timing-function);
+}
+
+.page-exit {
+  opacity: 1;
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translate3d(0, -20px, 0);
+  transition: opacity var(--transition-duration-base) var(--transition-timing-function),
+              transform var(--transition-duration-base) var(--transition-timing-function);
 }

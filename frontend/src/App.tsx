@@ -1,11 +1,13 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeProvider';
-import { SidebarProvider, useSidebar } from './contexts/SidebarContext';
+import { PageProvider, usePage } from './contexts/PageProvider';
 import NavigationBar from './components/NavigationBar';
-import SideNav from './components/SideNav';
 import ProtectedRoute from './components/ProtectedRoute';
+import { LoadingBar } from './components/LoadingBar';
+import { cn } from '@/lib/utils';
+import { AnimatePresence } from 'framer-motion';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -24,66 +26,101 @@ const App: React.FC = () => {
     <ThemeProvider defaultTheme="light" storageKey="spelling-teacher-theme">
       <Router future={{ v7_relativeSplatPath: true }}>
         <AuthProvider>
-          <SidebarProvider>
+          <PageProvider>
             <div className="min-h-screen bg-background">
+              <LoadingBar />
               <NavigationBar />
-              <div className="flex">
-                <SideNav />
-                <MainContent />
-              </div>
+              <MainContent />
             </div>
-          </SidebarProvider>
+          </PageProvider>
         </AuthProvider>
       </Router>
     </ThemeProvider>
   );
 };
 
-interface MainContentProps {
-}
+interface MainContentProps {}
 
 const MainContent: React.FC<MainContentProps> = () => {
-  const { collapsed } = useSidebar();
+  const location = useLocation();
+  const { setIsTransitioning, setPreviousPath } = usePage();
+  
+  // Handle route changes
+  React.useEffect(() => {
+    const handleRouteTransitionStart = () => {
+      setPreviousPath(location.pathname);
+      setIsTransitioning(true);
+    };
+
+    const handleRouteTransitionEnd = () => {
+      setIsTransitioning(false);
+    };
+
+    // Trigger transition start
+    handleRouteTransitionStart();
+
+    // Cleanup transition after animation
+    const timer = setTimeout(handleRouteTransitionEnd, 300);
+    return () => clearTimeout(timer);
+  }, [location.pathname, setIsTransitioning, setPreviousPath]);
   
   return (
-    <main className={`flex-1 p-4 transition-all duration-300 ${collapsed ? 'md:ml-0' : ''}`}>
-      <Routes>
-        <Route path="/" element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/word-lists" element={
-          <ProtectedRoute>
-            <WordListsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/practice/:listId" element={
-          <ProtectedRoute>
-            <PracticePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/progress/:listId" element={
-          <ProtectedRoute>
-            <ProgressPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/mistake-patterns" element={
-          <ProtectedRoute>
-            <MistakePatternsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/mistake-patterns/:listId" element={
-          <ProtectedRoute>
-            <MistakePatternsPage />
-          </ProtectedRoute>
-        } />
-      </Routes>
+    <main className="container transition-all duration-300 ease-in-out min-h-[calc(100vh-3.5rem)] px-4 py-6 md:px-6 lg:px-8">
+      <AnimatePresence mode="wait" onExitComplete={() => setIsTransitioning(false)}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/word-lists" element={
+            <ProtectedRoute>
+              <WordListsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/practice/:listId" element={
+            <ProtectedRoute>
+              <PracticePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/progress/:listId" element={
+            <ProtectedRoute>
+              <ProgressPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/mistake-patterns" element={
+            <ProtectedRoute>
+              <MistakePatternsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/mistake-patterns/:listId" element={
+            <ProtectedRoute>
+              <MistakePatternsPage />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </AnimatePresence>
+
+      <ScrollRestoration />
     </main>
   );
+};
+
+// Component to handle scroll restoration
+const ScrollRestoration: React.FC = () => {
+  const location = useLocation();
+  const { isTransitioning } = usePage();
+  
+  React.useEffect(() => {
+    if (!isTransitioning) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.pathname, isTransitioning]);
+  
+  return null;
 };
 
 export default App;
