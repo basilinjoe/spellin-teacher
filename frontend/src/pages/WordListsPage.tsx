@@ -8,7 +8,8 @@ import {
     WordListForm,
     ConfirmationModal,
     SRSStatusCard,
-    UploadWordListDialog 
+    UploadWordListDialog,
+    ReviewDialog 
 } from '../components';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const WordListsPage: React.FC = () => {
     const [editForm, setEditForm] = useState<EditForm>({ name: '', description: '' });
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState<'name' | 'created' | 'progress'>('name');
+    const [showReviewDialog, setShowReviewDialog] = useState<boolean>(false);
 
     useEffect(() => {
         fetchWordLists();
@@ -162,7 +164,7 @@ const WordListsPage: React.FC = () => {
                 }
             />
 
-            <SRSStatusCard />
+            <SRSStatusCard onReviewClick={() => setShowReviewDialog(true)} />
 
             <div className="mb-6 flex gap-4">
                 <div className="relative flex-1">
@@ -247,6 +249,11 @@ const WordListsPage: React.FC = () => {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <ReviewDialog
+                open={showReviewDialog}
+                onOpenChange={setShowReviewDialog}
+            />
 
             <ConfirmationModal
                 show={showDeleteModal}

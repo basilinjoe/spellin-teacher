@@ -18,3 +18,5 @@ export { default as WordListForm } from './forms/WordListForm';
 
 export * from './UploadWordListDialog';
 export * from './GenerateAudioDialog';
+export * from './PracticeDialog';
+export * from './ReviewDialog';

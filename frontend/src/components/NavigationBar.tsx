@@ -7,7 +7,11 @@ import { Menu } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
 
-const NavigationBar: React.FC = () => {
+interface NavigationBarProps {
+  onReviewClick: () => void;
+}
+
+const NavigationBar: React.FC<NavigationBarProps> = ({ onReviewClick }) => {
   const context = useContext(AuthContext);
   const currentUser = context?.currentUser;
   const logout = context?.logout ?? (() => {});
@@ -59,6 +63,13 @@ const NavigationBar: React.FC = () => {
                 className="hidden md:flex"
               >
                 Logout
+              </Button>
+              <Button
+                variant="outline"
+                onClick={onReviewClick}
+                className="hidden sm:flex"
+              >
+                Review Words
               </Button>
               <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetTrigger asChild className="md:hidden">

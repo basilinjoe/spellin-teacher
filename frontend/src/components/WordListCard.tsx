@@ -6,6 +6,7 @@ import { Progress } from './ui/progress';
 import { Pencil, Trash2, BookOpen, ChartBar, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GenerateAudioDialog } from './GenerateAudioDialog';
+import { PracticeDialog } from './PracticeDialog';
 
 interface WordListProps {
   id: number;
@@ -33,6 +34,7 @@ const WordListCard: React.FC<WordListProps> = ({
   const navigate = useNavigate();
   const progressPercentage = stats ? (stats.practiced_words / stats.total_words) * 100 : 0;
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [showPracticeDialog, setShowPracticeDialog] = useState(false);
 
   return (
     <Card className="h-full flex flex-col">
@@ -107,7 +109,7 @@ const WordListCard: React.FC<WordListProps> = ({
           <Button
             variant="default"
             className="flex-1"
-            onClick={() => navigate(`/practice/${id}`)}
+            onClick={() => setShowPracticeDialog(true)}
           >
             <BookOpen className="h-4 w-4 mr-2" />
             Practice
@@ -133,6 +135,13 @@ const WordListCard: React.FC<WordListProps> = ({
         open={showGenerateDialog}
         onOpenChange={setShowGenerateDialog}
         wordListId={id}
+      />
+
+      <PracticeDialog
+        open={showPracticeDialog}
+        onOpenChange={setShowPracticeDialog}
+        listId={id}
+        listName={name}
       />
     </Card>
   );
