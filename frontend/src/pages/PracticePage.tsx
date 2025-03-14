@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { practiceService, wordListService, getAudioUrl } from '../services';
+import { practiceService, wordListService, getAudioUrl, ExtendedPracticeResponse } from '../services';
 import { 
     LoadingSpinner, 
     ErrorAlert, 
@@ -28,20 +28,6 @@ interface Word {
     audio_url: string;
 }
 
-interface MistakePattern {
-    pattern_type: string;
-    description: string;
-    examples: string[];
-}
-
-interface PracticeResult {
-    correct: boolean;
-    mistake_pattern?: MistakePattern;
-    word: string;
-    meaning?: string;
-    example?: string;
-}
-
 interface RouteParams {
     listId: string;
 }
@@ -53,7 +39,7 @@ const PracticePage: React.FC = () => {
     const [currentWord, setCurrentWord] = useState<Word | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [userInput, setUserInput] = useState<string>('');
-    const [result, setResult] = useState<PracticeResult | null>(null);
+    const [result, setResult] = useState<ExtendedPracticeResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
     const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);

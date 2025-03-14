@@ -1,24 +1,12 @@
 import React from 'react';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ExtendedPracticeResponse } from '@/services';
 
-interface MistakePattern {
-  pattern_type: string;
-  description: string;
-  examples: string[];
-}
-
-interface PracticeResultProps {
-  correct: boolean;
-  userInput: string;
-  word: string;
-  meaning?: string;
-  example?: string;
-  mistake_pattern?: MistakePattern;
-  similar_words?: string[];
+export interface PracticeResultProps extends ExtendedPracticeResponse {
+  userInput: string;// Updated to match the API response
 }
 
 const PracticeResultCard: React.FC<PracticeResultProps> = ({
@@ -27,8 +15,7 @@ const PracticeResultCard: React.FC<PracticeResultProps> = ({
   word,
   meaning,
   example,
-  mistake_pattern,
-  similar_words,
+  mistake_patterns,
 }) => {
   const getHighlightedWord = (attempt: string, correct: string): string => {
     return attempt === correct ? attempt : `<span class="text-destructive">${attempt}</span>`;
@@ -81,33 +68,22 @@ const PracticeResultCard: React.FC<PracticeResultProps> = ({
               </div>
             )}
 
-            {mistake_pattern && (
+            {mistake_patterns && mistake_patterns.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-2">Mistake Pattern:</p>
-                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm">{mistake_pattern.description}</p>
-                    <Badge variant="secondary">{mistake_pattern.pattern_type}</Badge>
+                <p className="text-sm font-medium mb-2">Mistake Patterns:</p>
+                {mistake_patterns.map((pattern, index) => (
+                  <div key={index} className="bg-muted/50 rounded-lg p-3 space-y-2 mb-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm">{pattern.description}</p>
+                      <Badge variant="secondary">{pattern.pattern_type}</Badge>
+                    </div>
+                    {pattern.examples && pattern.examples.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Similar mistakes: {pattern.examples.join(', ')}
+                      </p>
+                    )}
                   </div>
-                  {mistake_pattern.examples.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Similar mistakes: {mistake_pattern.examples.join(', ')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {similar_words && similar_words.length > 0 && (
-              <div>
-                <p className="text-sm font-medium mb-2">Similar Words:</p>
-                <div className="flex flex-wrap gap-2">
-                  {similar_words.map((word, index) => (
-                    <Badge key={index} variant="outline">
-                      {word}
-                    </Badge>
-                  ))}
-                </div>
+                ))}
               </div>
             )}
           </CardContent>

@@ -1,5 +1,5 @@
 import axiosInstance, { extractErrorMessage } from './httpClient';
-import { ReviewWord, PracticeResponse, SRSStats } from './types';
+import { ReviewWord, PracticeResponse, SRSStats, ExtendedPracticeResponse } from './types';
 
 export const reviewService = {
     getNextReviewWord: async (): Promise<ReviewWord | null> => {
@@ -14,7 +14,7 @@ export const reviewService = {
 
   submitReview: async (wordId: number, userSpelling: string): Promise<PracticeResponse> => {
     try {
-      const response = await axiosInstance.post<PracticeResponse>(`/api/v1/srs/review/${wordId}/submit`, {
+      const response = await axiosInstance.post<ExtendedPracticeResponse>(`/api/v1/srs/review/${wordId}/submit`, {
         user_spelling: userSpelling,
       });
       return response.data;

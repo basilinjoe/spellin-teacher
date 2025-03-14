@@ -5,6 +5,7 @@ from sqlalchemy.future import select
 from sqlalchemy import and_, func, desc, text
 from sqlalchemy.orm import joinedload
 from functools import lru_cache
+import json
 
 from app.models.models import Word, WordList
 
@@ -126,18 +127,14 @@ class SRSService:
         """Get SRS statistics for the user with optimized query"""
         current_time = datetime.utcnow()
         
-        # Use a single optimized query to get all stats
+        # First query to get basic stats
         query = text("""
             SELECT 
                 COUNT(*) as total_words,
                 COUNT(CASE WHEN next_review <= :current_time THEN 1 END) as total_due,
                 COUNT(CASE WHEN practice_count > 0 THEN 1 END) as total_practiced,
                 COALESCE(SUM(correct_count), 0) as total_correct,
-                COALESCE(SUM(practice_count), 0) as total_attempts,
-                json_object_agg(
-                    COALESCE(srs_level, 0)::text, 
-                    COUNT(*)
-                ) as level_counts
+                COALESCE(SUM(practice_count), 0) as total_attempts
             FROM words w
             JOIN word_lists wl ON w.word_list_id = wl.id
             WHERE wl.owner_id = :user_id
@@ -145,6 +142,25 @@ class SRSService:
         
         result = await db.execute(query, {"user_id": user_id, "current_time": current_time})
         stats = result.first()
+        
+        # Second query to get level counts
+        level_query = text("""
+            SELECT 
+                COALESCE(srs_level, 0) as level, 
+                COUNT(*) as count
+            FROM words w
+            JOIN word_lists wl ON w.word_list_id = wl.id
+            WHERE wl.owner_id = :user_id
+            GROUP BY COALESCE(srs_level, 0)
+        """)
+        
+        level_result = await db.execute(level_query, {"user_id": user_id})
+        level_rows = level_result.all()
+        
+        # Convert level counts to dictionary
+        level_counts = {str(i): 0 for i in range(6)}
+        for row in level_rows:
+            level_counts[str(row.level)] = row.count
         
         if not stats or stats.total_words == 0:
             return {
@@ -154,9 +170,6 @@ class SRSService:
                 "accuracy": 0,
                 "words_studied": 0
             }
-        
-        # Parse the level_counts from JSON
-        level_counts = stats.level_counts or {str(i): 0 for i in range(6)}
         
         return {
             "total_words": stats.total_words,

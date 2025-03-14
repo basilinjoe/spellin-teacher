@@ -68,3 +68,22 @@ export interface ReviewWord {
   audio_url: string;
   srs_level: number;
 }
+
+export interface ExtendedPracticeResponse {
+  word_id: number;
+  word: string;
+  correct: boolean;
+  correct_spelling: string;
+  meaning: string;
+  example: string;
+  mistake_patterns: Array<{
+    pattern_type: string;
+    description: string;
+    examples: string[];
+    count: number;
+    word: {
+      id: number;
+      word: string;
+    };
+  }>;
+}

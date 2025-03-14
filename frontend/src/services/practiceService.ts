@@ -1,5 +1,5 @@
 import axiosInstance, { extractErrorMessage } from './httpClient';
-import { Word, PracticeResponse, PracticeStats, MistakePatternResponse } from './types';
+import { Word, PracticeResponse, PracticeStats, MistakePatternResponse, ExtendedPracticeResponse } from './types';
 
 export const practiceService = {
   getWordForPractice: async (wordListId: number, speed: 'slow' | 'normal' = 'normal'): Promise<Word> => {
@@ -15,22 +15,11 @@ export const practiceService = {
     }
   },
 
-  submitPractice: async (wordId: number, attempt: string): Promise<{
-    correct: boolean;
-    mistake_pattern?: {
-      pattern_type: string;
-      description: string;
-      examples: string[];
-    };
-    word: string;
-    meaning?: string;
-    example?: string;
-    similar_words?: string[];
-  }> => {
+  submitPractice: async (wordId: number, attempt: string): Promise<ExtendedPracticeResponse> => {
     try {
       const response = await axiosInstance.post('/api/v1/practice/submit', {
         word_id: wordId,
-        attempt
+        user_spelling:attempt
       });
       return response.data;
     } catch (error) {

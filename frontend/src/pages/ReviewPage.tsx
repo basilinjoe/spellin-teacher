@@ -1,34 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { reviewService, getAudioUrl, ReviewWord } from '../services';
-import { 
-    LoadingSpinner, 
-    ErrorAlert, 
-    AudioPlayButton, 
+import {
+    LoadingSpinner,
+    ErrorAlert,
+    AudioPlayButton,
     PracticeResultCard,
     PageContainer
 } from '../components';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PracticeResultProps } from '@/components/PracticeResultCard';
 
-interface PracticeResult {
-    word_id: number;
-    word: string;
-    correct: boolean;
-    correct_spelling: string;
-    meaning?: string;
-    example?: string;
-    mistake_patterns?: Array<{
-        description: string;
-    }>;
-    similar_words?: string[];
-}
 
 const ReviewPage: React.FC = () => {
     const [currentWord, setCurrentWord] = useState<ReviewWord | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [userInput, setUserInput] = useState<string>('');
-    const [result, setResult] = useState<PracticeResult | null>(null);
+    const [result, setResult] = useState<PracticeResultProps | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
     const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
@@ -54,7 +43,7 @@ const ReviewPage: React.FC = () => {
             setLoading(true);
             setError('');
             const word = await reviewService.getNextReviewWord();
-            
+
             if (word) {
                 setCurrentWord(word);
                 setAudioUrl(word.audio_url ? getAudioUrl(word.audio_url) : null);
@@ -78,7 +67,7 @@ const ReviewPage: React.FC = () => {
 
     useEffect(() => {
         if (!audioElement) return;
-        
+
         if (audioUrl) {
             audioElement.src = audioUrl;
             audioElement.load();
@@ -103,9 +92,9 @@ const ReviewPage: React.FC = () => {
 
         try {
             setLoading(true);
-            console.log(currentWord,userInput)
+            console.log(currentWord, userInput)
             const response = await reviewService.submitReview(Number(currentWord.id), userInput.trim());
-            setResult(response);
+            setResult({ ...response, userInput } as PracticeResultProps);
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to submit review');
         } finally {
