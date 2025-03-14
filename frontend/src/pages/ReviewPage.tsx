@@ -12,35 +12,56 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PracticeResultProps } from '@/components/PracticeResultCard';
 
-
 const ReviewPage: React.FC = () => {
     const [currentWord, setCurrentWord] = useState<ReviewWord | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [userInput, setUserInput] = useState<string>('');
     const [result, setResult] = useState<PracticeResultProps | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
-    const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
+    // Audio element ref with lazy initialization
+    const [audioElement] = useState(() => new Audio());
+
+    // Set up audio error handler
     useEffect(() => {
-        const audio = new Audio();
         const handleError = () => {
             setError('Failed to play audio. Please try again.');
         };
-        audio.addEventListener('error', handleError);
-        setAudioElement(audio);
-
+        
+        audioElement.addEventListener('error', handleError);
+        
         return () => {
-            audio.pause();
-            audio.removeEventListener('error', handleError);
-            audio.src = '';
-            setAudioElement(null);
+            audioElement.pause();
+            audioElement.removeEventListener('error', handleError);
+            audioElement.src = '';
         };
     }, []);
 
-    const fetchNextWord = async () => {
+    // Update audio source when audioUrl changes
+    useEffect(() => {
+        if (audioUrl) {
+            audioElement.src = audioUrl;
+            audioElement.load();
+        } else {
+            audioElement.pause();
+            audioElement.src = '';
+        }
+    }, [audioUrl]);
+
+    const playAudio = useCallback(() => {
+        if (!audioUrl) return;
+        
+        audioElement.play().catch(err => {
+            console.error('Audio playback failed:', err);
+            setError('Failed to play audio. Please try again.');
+        });
+    }, [audioUrl]);
+
+    const fetchNextWord = useCallback(async () => {
         try {
-            setLoading(true);
+            setIsLoading(true);
             setError('');
             const word = await reviewService.getNextReviewWord();
 
@@ -49,6 +70,7 @@ const ReviewPage: React.FC = () => {
                 setAudioUrl(word.audio_url ? getAudioUrl(word.audio_url) : null);
             } else {
                 setCurrentWord(null);
+                setAudioUrl(null);
             }
             setResult(null);
             setUserInput('');
@@ -57,62 +79,53 @@ const ReviewPage: React.FC = () => {
             setCurrentWord(null);
             setAudioUrl(null);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchNextWord();
     }, []);
 
+    // Load the first word on component mount
     useEffect(() => {
-        if (!audioElement) return;
-
-        if (audioUrl) {
-            audioElement.src = audioUrl;
-            audioElement.load();
-        } else {
-            audioElement.pause();
-            audioElement.src = '';
-        }
-    }, [audioUrl, audioElement]);
-
-    const playAudio = useCallback((): void => {
-        if (audioElement) {
-            audioElement.play().catch(err => {
-                console.error('Audio playback failed:', err);
-                setError('Failed to play audio. Please try again.');
-            });
-        }
-    }, [audioElement]);
+        fetchNextWord();
+    }, [fetchNextWord]);
 
     const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         if (!currentWord || !userInput.trim()) return;
 
         try {
-            setLoading(true);
-            console.log(currentWord, userInput)
+            setIsSubmitting(true);
+            setError('');
             const response = await reviewService.submitReview(Number(currentWord.id), userInput.trim());
             setResult({ ...response, userInput } as PracticeResultProps);
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to submit review');
         } finally {
-            setLoading(false);
+            setIsSubmitting(false);
         }
     };
 
-    if (loading && !currentWord) {
+    // Auto-play audio when a new word is loaded
+    useEffect(() => {
+        if (currentWord && audioUrl && !result) {
+            const timeoutId = setTimeout(() => {
+                playAudio();
+            }, 500); // Small delay to ensure audio is loaded
+            
+            return () => clearTimeout(timeoutId);
+        }
+    }, [currentWord, audioUrl, result, playAudio]);
+
+    if (isLoading && !currentWord) {
         return <LoadingSpinner />;
     }
 
     return (
         <PageContainer>
+            {error && <ErrorAlert error={error} onDismiss={() => setError('')} />}
+            
             {currentWord ? (
                 <Card>
                     <CardContent className="pt-6">
-                        <ErrorAlert error={error} onDismiss={() => setError('')} />
-
                         {result ? (
                             <div className="space-y-4">
                                 <PracticeResultCard {...result} userInput={userInput} />
@@ -120,15 +133,16 @@ const ReviewPage: React.FC = () => {
                                     size="lg"
                                     className="w-full"
                                     onClick={fetchNextWord}
+                                    disabled={isLoading}
                                 >
-                                    Next Word
+                                    {isLoading ? 'Loading...' : 'Next Word'}
                                 </Button>
                             </div>
                         ) : (
                             <div className="space-y-6">
                                 <AudioPlayButton
                                     onClick={playAudio}
-                                    disabled={loading || !audioUrl}
+                                    disabled={!audioUrl}
                                 />
 
                                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,6 +154,7 @@ const ReviewPage: React.FC = () => {
                                             onChange={(e) => setUserInput(e.target.value)}
                                             autoComplete="off"
                                             autoFocus
+                                            disabled={isSubmitting}
                                         />
                                     </div>
 
@@ -147,9 +162,9 @@ const ReviewPage: React.FC = () => {
                                         type="submit"
                                         size="lg"
                                         className="w-full"
-                                        disabled={loading || !userInput.trim()}
+                                        disabled={isSubmitting || !userInput.trim()}
                                     >
-                                        Submit
+                                        {isSubmitting ? 'Submitting...' : 'Submit'}
                                     </Button>
                                 </form>
                             </div>
