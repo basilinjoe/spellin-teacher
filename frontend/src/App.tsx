@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeProvider';
 import NavigationBar from './components/NavigationBar';
 import SideNav from './components/SideNav';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,98 +18,69 @@ import MistakePatternsPage from './pages/MistakePatternsPage';
 import ReviewPage from './pages/ReviewPage';
 import AudioGenerationPage from './pages/AudioGenerationPage';
 
-// Styles - Removed Bootstrap import
 import './App.css';
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <AuthProvider>
-        <div className="App">
-          <NavigationBar />
-          <div className="flex">
-            <SideNav />
-            <main className="flex-grow p-3">
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                
-                {/* Protected routes */}
-                <Route
-                  path="/word-lists"
-                  element={
+    <ThemeProvider defaultTheme="light" storageKey="spelling-teacher-theme">
+      <Router>
+        <AuthProvider>
+          <div className="min-h-screen bg-background">
+            <NavigationBar />
+            <div className="flex">
+              <SideNav />
+              <main className="flex-1 p-4">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/word-lists" element={
                     <ProtectedRoute>
                       <WordListsPage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/upload"
-                  element={
+                  } />
+                  <Route path="/upload" element={
                     <ProtectedRoute>
                       <UploadPage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/practice/:listId"
-                  element={
+                  } />
+                  <Route path="/practice/:listId" element={
                     <ProtectedRoute>
                       <PracticePage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/progress/:listId"
-                  element={
+                  } />
+                  <Route path="/progress/:listId" element={
                     <ProtectedRoute>
                       <ProgressPage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mistake-patterns"
-                  element={
+                  } />
+                  <Route path="/mistake-patterns" element={
                     <ProtectedRoute>
                       <MistakePatternsPage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/mistake-patterns/:listId"
-                  element={
+                  } />
+                  <Route path="/mistake-patterns/:listId" element={
                     <ProtectedRoute>
                       <MistakePatternsPage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/review"
-                  element={
+                  } />
+                  <Route path="/review" element={
                     <ProtectedRoute>
                       <ReviewPage />
                     </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/audio-generation"
-                  element={
+                  } />
+                  <Route path="/audio-generation" element={
                     <ProtectedRoute>
                       <AudioGenerationPage />
                     </ProtectedRoute>
-                  }
-                />
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
+                  } />
+                </Routes>
+              </main>
+            </div>
           </div>
-        </div>
-      </AuthProvider>
-    </Router>
+        </AuthProvider>
+      </Router>
+    </ThemeProvider>
   );
 };
 

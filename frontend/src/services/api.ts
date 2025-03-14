@@ -36,13 +36,10 @@ interface PracticeResponse {
 }
 
 interface PracticeStats {
-  total_attempts: number;
-  correct_attempts: number;
+  total_words: number;
+  familiar_words: number;
+  practiced_words: number;
   accuracy: number;
-  common_mistakes: Array<{
-    pattern: string;
-    count: number;
-  }>;
 }
 
 interface SRSStats {
@@ -190,9 +187,9 @@ export const practiceAPI = {
 
 // Review API methods
 export const reviewAPI = {
-  getReviewWords: async (): Promise<Word[]> => {
-    const response = await axiosInstance.get<Word[]>('/api/v1/srs/review');
-    return response.data;
+  getNextReviewWord: async (): Promise<Word | null> => {
+    const response = await axiosInstance.get<Word[]>('/api/v1/srs/review?limit=1');
+    return response.data[0] || null;
   },
 
   submitReview: async (wordId: number, userSpelling: string): Promise<PracticeResponse> => {

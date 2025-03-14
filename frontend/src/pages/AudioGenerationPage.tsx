@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Form, Button, Card, ProgressBar } from 'react-bootstrap';
 import { ttsAPI } from '../services/api';
 import { 
     ErrorAlert,
     PageContainer,
     PageHeader
 } from '../components';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 interface GenerationProgress {
     total: number;
@@ -34,7 +37,6 @@ const AudioGenerationPage: React.FC = () => {
                 failed: result.failed,
                 percentage: Math.round((result.processed / result.total) * 100)
             });
-            
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to generate audio files');
         } finally {
@@ -47,49 +49,50 @@ const AudioGenerationPage: React.FC = () => {
             <PageHeader title="Generate Audio Files" />
 
             <Card>
-                <Card.Body>
+                <CardContent className="pt-6">
                     <ErrorAlert error={error} />
                     
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Speech Speed</Form.Label>
-                            <Form.Select 
+                    <form className="space-y-6">
+                        <div className="space-y-2">
+                            <Select
                                 value={speed}
-                                onChange={(e) => setSpeed(e.target.value as 'normal' | 'slow')}
+                                onValueChange={(value) => setSpeed(value as 'normal' | 'slow')}
                                 disabled={loading}
                             >
-                                <option value="normal">Normal</option>
-                                <option value="slow">Slow</option>
-                            </Form.Select>
-                        </Form.Group>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select speed" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="normal">Normal</SelectItem>
+                                    <SelectItem value="slow">Slow</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                         <Button 
-                            variant="primary" 
+                            type="button"
                             onClick={handleGenerateAudio}
                             disabled={loading}
+                            className="w-full"
                         >
                             {loading ? 'Generating...' : 'Generate Audio'}
                         </Button>
-                    </Form>
+                    </form>
 
                     {progress && (
-                        <div className="mt-4">
-                            <ProgressBar 
-                                now={progress.percentage} 
-                                label={`${progress.percentage}%`}
-                                className="mb-2"
-                            />
-                            <p className="text-muted">
+                        <div className="mt-6 space-y-2">
+                            <Progress value={progress.percentage} />
+                            <p className="text-sm text-muted-foreground">
                                 Processed: {progress.processed} / {progress.total} words
                                 {progress.failed > 0 && (
-                                    <span className="text-danger">
-                                        {' '}(Failed: {progress.failed})
+                                    <span className="text-destructive ml-2">
+                                        Failed: {progress.failed}
                                     </span>
                                 )}
                             </p>
                         </div>
                     )}
-                </Card.Body>
+                </CardContent>
             </Card>
         </PageContainer>
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col } from 'react-bootstrap';
+import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
@@ -15,19 +15,21 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   className = ''
 }) => {
   return (
-    <Row className={`mb-4 ${className}`}>
-      <Col>
-        <h1>{title}</h1>
+    <div className={cn('flex items-center justify-between pb-4 mb-4 border-b', className)}>
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         {description && (
-          <p className="text-muted">{description}</p>
+          <p className="text-muted-foreground">
+            {description}
+          </p>
         )}
-      </Col>
+      </div>
       {actions && (
-        <Col xs="auto">
+        <div className="flex items-center gap-2">
           {actions}
-        </Col>
+        </div>
       )}
-    </Row>
+    </div>
   );
 };
 

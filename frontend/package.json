@@ -13,6 +13,7 @@
     "@radix-ui/react-progress": "^1.1.2",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-switch": "^1.1.3",
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/vite": "^4.0.13",
     "axios": "^1.6.2",
@@ -24,7 +25,6 @@
     "react-hook-form": "^7.54.2",
     "react-router-dom": "^6.20.0",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7",
     "web-vitals": "^4.2.4",
     "zod": "^3.24.2"
   },
@@ -35,9 +35,10 @@
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
     "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.13",
+    "autoprefixer": "10.4.16",
+    "postcss": "8.4.31",
+    "tailwindcss": "3.3.0",
+    "tailwindcss-animate": "1.0.7",
     "typescript": "^5.8.2",
     "vite": "^5.0.0"
   },
@@ -46,5 +47,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "vercel-build": "vite build"
-  }
+  },
+  "packageManager": "pnpm@10.6.2+sha512.47870716bea1572b53df34ad8647b42962bc790ce2bf4562ba0f643237d7302a3d6a8ecef9e4bdfc01d23af1969aa90485d4cebb0b9638fa5ef1daef656f6c1b"
 }

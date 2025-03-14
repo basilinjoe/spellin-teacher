@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
+        <DialogDescription>
           {message}
-        </div>
+        </DialogDescription>
         <DialogFooter>
           <Button variant="outline" onClick={onHide}>
             {cancelLabel}

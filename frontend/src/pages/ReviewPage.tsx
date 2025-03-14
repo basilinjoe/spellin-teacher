@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Form, Button, Card, Row, Col } from 'react-bootstrap';
 import { reviewAPI } from '../services/api';
 import { 
     LoadingSpinner, 
@@ -10,15 +9,17 @@ import {
     PageHeader,
     StatsCard 
 } from '../components';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface Word {
     id: number;
     word: string;
-    definition: string;
     audio_url: string;
-    word_list_id: number;
     srs_level: number;
-    next_review: string | null;
+    meaning?: string;
+    example?: string;
 }
 
 interface PracticeResult {
@@ -28,11 +29,10 @@ interface PracticeResult {
     correct_spelling: string;
     meaning?: string;
     example?: string;
-    mistake_patterns: Array<{
-        pattern_type: string;
+    mistake_patterns?: Array<{
         description: string;
-        examples: string[];
     }>;
+    similar_words?: string[];
 }
 
 const ReviewPage: React.FC = () => {
@@ -43,53 +43,59 @@ const ReviewPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
     const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-    const [stats, setStats] = useState<{ total_due: number } | null>(null);
 
     useEffect(() => {
         const audio = new Audio();
-        audio.addEventListener('error', () => {
+        const handleError = () => {
             setError('Failed to play audio. Please try again.');
-        });
+        };
+        audio.addEventListener('error', handleError);
         setAudioElement(audio);
 
         return () => {
             audio.pause();
+            audio.removeEventListener('error', handleError);
             audio.src = '';
+            setAudioElement(null);
         };
     }, []);
 
     const loadReviewWords = async (): Promise<void> => {
         try {
-            const words = await reviewAPI.getReviewWords();
-            if (words.length > 0) {
-                setCurrentWord(words[0]);
-                setAudioUrl(words[0].audio_url);
+            setLoading(true);
+            setError('');
+            const word = await reviewAPI.getNextReviewWord();
+            if (!word) {
+                setCurrentWord(null);
+                setAudioUrl(null);
+                return;
             }
+            setCurrentWord(word);
+            setAudioUrl(word.audio_url);
+            setResult(null);
+            setUserInput('');
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to load review words');
+            setCurrentWord(null);
+            setAudioUrl(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const loadStats = async (): Promise<void> => {
-        try {
-            const data = await reviewAPI.getStats();
-            setStats(data);
-        } catch (err: any) {
-            console.error('Failed to load stats:', err);
-        }
-    };
-
     useEffect(() => {
         loadReviewWords();
-        loadStats();
     }, []);
 
     useEffect(() => {
-        if (audioUrl && audioElement) {
+        if (!audioElement) return;
+        
+        if (audioUrl) {
             audioElement.src = audioUrl;
             audioElement.load();
+        } else {
+            audioElement.pause();
+            audioElement.src = '';
         }
     }, [audioUrl, audioElement]);
 
@@ -107,22 +113,13 @@ const ReviewPage: React.FC = () => {
         if (!currentWord || !userInput.trim()) return;
 
         try {
+            setLoading(true);
             const response = await reviewAPI.submitReview(currentWord.id, userInput.trim());
-            setResult({
-                word_id: response.word_id,
-                word: response.word,
-                correct: response.correct,
-                correct_spelling: response.correct_spelling,
-                meaning: response.meaning,
-                example: response.example,
-                mistake_patterns: response.mistake_patterns || [],
-            });
-            
-            await loadReviewWords();
-            setUserInput('');
-            await loadStats();
+            setResult(response);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to submit answer');
+            setError(err.response?.data?.detail || 'Failed to submit review');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -132,62 +129,32 @@ const ReviewPage: React.FC = () => {
 
     return (
         <PageContainer>
-            <Row className="mb-4">
-                <Col>
-                    <StatsCard 
-                        value={stats?.total_due || 0} 
-                        label="Words Due for Review" 
-                    />
-                </Col>
-            </Row>
-
-            {!currentWord && !loading ? (
-                <Card className="text-center p-5">
-                    <Card.Body>
-                        <i className="fas fa-check-circle fa-3x mb-3 text-success"></i>
-                        <h3>All Caught Up!</h3>
-                        <p className="text-muted">
-                            You have no words due for review at the moment.
-                            Check back later or practice some word lists.
-                        </p>
-                    </Card.Body>
-                </Card>
-            ) : (
+            {currentWord ? (
                 <Card>
-                    <Card.Header>
-                        <PageHeader 
-                            title="Review Session"
-                            className="mb-0"
-                        />
-                    </Card.Header>
-                    <Card.Body>
+                    <CardContent className="pt-6">
                         <ErrorAlert error={error} onDismiss={() => setError('')} />
 
                         {result ? (
-                            <div>
-                                <PracticeResultCard 
-                                    {...result}
-                                    userInput={userInput}
-                                />
-
-                                {!currentWord ? (
-                                    <div className="d-grid">
-                                        <Button variant="primary" size="lg" onClick={loadReviewWords}>
-                                            Continue Review
-                                        </Button>
-                                    </div>
-                                ) : null}
+                            <div className="space-y-4">
+                                <PracticeResultCard {...result} userInput={userInput} />
+                                <Button
+                                    size="lg"
+                                    className="w-full"
+                                    onClick={loadReviewWords}
+                                >
+                                    Next Word
+                                </Button>
                             </div>
                         ) : (
-                            <div>
+                            <div className="space-y-6">
                                 <AudioPlayButton
                                     onClick={playAudio}
                                     disabled={loading || !audioUrl}
                                 />
 
-                                <Form onSubmit={handleSubmit}>
-                                    <Form.Group className="mb-4">
-                                        <Form.Control
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Input
                                             type="text"
                                             placeholder="Type the word here and press Enter"
                                             value={userInput}
@@ -195,23 +162,29 @@ const ReviewPage: React.FC = () => {
                                             autoComplete="off"
                                             autoFocus
                                         />
-                                    </Form.Group>
-
-                                    <div className="d-grid">
-                                        <Button
-                                            variant="primary"
-                                            size="lg"
-                                            type="submit"
-                                            disabled={loading || !userInput.trim()}
-                                        >
-                                            Submit
-                                        </Button>
                                     </div>
-                                </Form>
+
+                                    <Button
+                                        type="submit"
+                                        size="lg"
+                                        className="w-full"
+                                        disabled={loading || !userInput.trim()}
+                                    >
+                                        Submit
+                                    </Button>
+                                </form>
                             </div>
                         )}
-                    </Card.Body>
+                    </CardContent>
                 </Card>
+            ) : (
+                <div className="text-center py-12">
+                    <h3 className="text-xl font-semibold mb-4">No Words to Review</h3>
+                    <p className="text-muted-foreground mb-4">
+                        Great job! You've completed all your reviews for now.
+                        Check back later for more words to review.
+                    </p>
+                </div>
             )}
         </PageContainer>
     );

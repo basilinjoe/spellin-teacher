@@ -1,4 +1,6 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -8,25 +10,24 @@ interface LoadingSpinnerProps {
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', center = true }) => {
   const getSize = () => {
     switch (size) {
-      case 'sm': return '1.5rem';
-      case 'lg': return '4rem';
-      default: return '3rem';  // md
+      case 'sm': return 'h-4 w-4';
+      case 'lg': return 'h-12 w-12';
+      default: return 'h-8 w-8'; // md
     }
   };
 
   const spinner = (
-    <div 
-      className="spinner-border" 
-      role="status"
-      style={{ width: getSize(), height: getSize() }}
-    >
-      <span className="visually-hidden">Loading...</span>
-    </div>
+    <Loader2 
+      className={cn(
+        'animate-spin',
+        getSize()
+      )}
+    />
   );
 
   if (center) {
     return (
-      <div className="text-center p-5">
+      <div className="flex items-center justify-center p-8">
         {spinner}
       </div>
     );

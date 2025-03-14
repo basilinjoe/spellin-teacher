@@ -1,14 +1,18 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import pool, text
+from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
 from app.core.config import settings
-from app.core.database import SQLALCHEMY_DATABASE_URL, engine
+from app.core.database import SQLALCHEMY_DATABASE_URL
 from app.models.models import Base
 
 # this is the Alembic Config object, which provides
@@ -43,10 +47,18 @@ def run_migrations_offline() -> None:
 
 async def run_migrations() -> None:
     """In this scenario we need to create the schema within a transaction."""
-    async with engine.connect() as connection:
+    configuration = config.get_section(config.config_ini_section)
+    url = configuration["sqlalchemy.url"]
+    connectable = async_engine_from_config(
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
 
-    await engine.dispose()
+    await connectable.dispose()
 
 
 def do_run_migrations(connection: Connection) -> None:

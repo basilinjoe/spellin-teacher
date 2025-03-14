@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Form, Button } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { practiceAPI, wordListAPI } from '../services/api';
 import { 
@@ -10,6 +9,11 @@ import {
     PageContainer,
     PageHeader 
 } from '../components';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 interface WordList {
     id: number;
@@ -24,9 +28,15 @@ interface Word {
     audio_url: string;
 }
 
+interface MistakePattern {
+    pattern_type: string;
+    description: string;
+    examples: string[];
+}
+
 interface PracticeResult {
     correct: boolean;
-    mistake_pattern?: string;
+    mistake_pattern?: MistakePattern;
     word: string;
     meaning?: string;
     example?: string;
@@ -115,7 +125,7 @@ const PracticePage: React.FC = () => {
             const response = await practiceAPI.submitPractice(currentWord.id, userInput.trim());
             setResult({
                 correct: response.correct,
-                mistake_pattern: response.mistake_patterns?.[0]?.description,
+                mistake_pattern: response.mistake_patterns?.[0],
                 word: response.word || currentWord.word,
                 meaning: response.meaning,
                 example: response.example
@@ -138,32 +148,30 @@ const PracticePage: React.FC = () => {
 
     return (
         <PageContainer>
+            <PageHeader 
+                title={`Practice: ${wordList?.name || ''}`}
+                description={wordList?.description}
+            />
+
             <Card>
-                <Card.Header>
-                    <div className="d-flex justify-content-between align-items-center">
-                        <PageHeader 
-                            title={`Practice: ${wordList?.name}`}
-                            className="mb-0"
-                        />
-                        <Form.Check
-                            type="switch"
-                            id="speed-switch"
-                            label="Slow Mode"
+                <CardHeader className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="speed"
                             checked={speed === 'slow'}
-                            onChange={(e) => setSpeed(e.target.checked ? 'slow' : 'normal')}
-                            className="mb-0"
+                            onCheckedChange={(checked) => setSpeed(checked ? 'slow' : 'normal')}
                         />
+                        <Label htmlFor="speed">Slow pronunciation</Label>
                     </div>
-                </Card.Header>
-                <Card.Body>
+                </CardHeader>
+                <CardContent>
                     <ErrorAlert error={error} onDismiss={() => setError('')} />
 
                     {result ? (
-                        <div>
+                        <div className="space-y-4">
                             <PracticeResultCard {...result} userInput={userInput} />
-                            <div className="d-grid gap-2">
+                            <div className="grid gap-2">
                                 <Button
-                                    variant="primary"
                                     size="lg"
                                     onClick={handleNextWord}
                                     disabled={loading}
@@ -171,7 +179,7 @@ const PracticePage: React.FC = () => {
                                     Next Word (Press Enter or Space)
                                 </Button>
                                 <Button
-                                    variant="outline-secondary"
+                                    variant="outline"
                                     onClick={() => navigate(`/progress/${listId}`)}
                                 >
                                     View Progress
@@ -179,15 +187,15 @@ const PracticePage: React.FC = () => {
                             </div>
                         </div>
                     ) : (
-                        <div>
+                        <div className="space-y-6">
                             <AudioPlayButton
                                 onClick={playAudio}
                                 disabled={loading || !audioUrl}
                             />
 
-                            <Form onSubmit={handleSubmit}>
-                                <Form.Group className="mb-4">
-                                    <Form.Control
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Input
                                         type="text"
                                         placeholder="Type the word here and press Enter"
                                         value={userInput}
@@ -195,22 +203,20 @@ const PracticePage: React.FC = () => {
                                         autoComplete="off"
                                         autoFocus
                                     />
-                                </Form.Group>
-
-                                <div className="d-grid">
-                                    <Button
-                                        variant="primary"
-                                        size="lg"
-                                        type="submit"
-                                        disabled={loading || !userInput.trim()}
-                                    >
-                                        Submit
-                                    </Button>
                                 </div>
-                            </Form>
+
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    className="w-full"
+                                    disabled={loading || !userInput.trim()}
+                                >
+                                    Submit
+                                </Button>
+                            </form>
                         </div>
                     )}
-                </Card.Body>
+                </CardContent>
             </Card>
         </PageContainer>
     );

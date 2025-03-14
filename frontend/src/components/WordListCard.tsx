@@ -1,6 +1,8 @@
 import React from 'react';
-import { Card, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/card';
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface WordListProps {
   id: number;
@@ -22,54 +24,57 @@ const WordListCard: React.FC<WordListProps> = ({
   const navigate = useNavigate();
 
   return (
-    <Card className="h-100 word-list-card">
-      <Card.Body>
-        <Card.Title className="d-flex justify-content-between align-items-start">
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-start">
           <span>{name}</span>
-          <div className="ms-2">
+          <div className="flex gap-2">
             <Button
-              variant="link"
-              className="p-0 me-2 text-primary"
+              variant="ghost"
+              size="icon"
               onClick={onEdit}
               title="Edit list"
             >
-              <i className="fas fa-edit"></i>
+              <Pencil className="h-4 w-4" />
             </Button>
             <Button
-              variant="link"
-              className="p-0 text-danger"
+              variant="ghost"
+              size="icon"
               onClick={onDelete}
               title="Delete list"
+              className="text-destructive"
             >
-              <i className="fas fa-trash-alt"></i>
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </Card.Title>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         {description && (
-          <Card.Text className="text-muted">
+          <p className="text-muted-foreground">
             {description}
-          </Card.Text>
+          </p>
         )}
-        <div className="d-flex gap-2 mt-3">
+        <div className="flex gap-2 mt-3">
           <Button
-            variant="primary"
+            variant="default"
             onClick={() => navigate(`/practice/${id}`)}
           >
             Practice
           </Button>
           <Button
-            variant="outline-secondary"
+            variant="outline"
             onClick={() => navigate(`/progress/${id}`)}
           >
             Progress
           </Button>
         </div>
-      </Card.Body>
-      <Card.Footer className="text-muted">
-        <small>
+      </CardContent>
+      <CardFooter>
+        <p className="text-sm text-muted-foreground">
           Created: {new Date(created_at).toLocaleDateString()}
-        </small>
-      </Card.Footer>
+        </p>
+      </CardFooter>
     </Card>
   );
 };

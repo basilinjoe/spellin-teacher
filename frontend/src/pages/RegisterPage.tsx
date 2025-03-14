@@ -1,7 +1,11 @@
 import React, { useState, useContext, FormEvent } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -21,16 +25,13 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
-    // Reset errors
     setValidationError('');
     
-    // Validate password match
     if (password !== confirmPassword) {
       setValidationError('Passwords do not match');
       return;
     }
     
-    // Validate password length
     if (password.length < 6) {
       setValidationError('Password must be at least 6 characters long');
       return;
@@ -48,80 +49,82 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center">
-        <Col md={6}>
-          <Card className="mt-5">
-            <Card.Header className="text-center">
-              <h2>Register</h2>
-            </Card.Header>
-            <Card.Body>
-              {validationError && (
-                <Alert variant="danger">{validationError}</Alert>
-              )}
-              {authError && (
-                <Alert variant="danger">{authError}</Alert>
-              )}
-              
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="formEmail">
-                  <Form.Label>Email address</Form.Label>
-                  <Form.Control
-                    type="email"
-                    placeholder="Enter email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  <Form.Text className="text-muted">
-                    We'll never share your email with anyone else.
-                  </Form.Text>
-                </Form.Group>
+    <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-4">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">Register</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(validationError || authError) && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>
+                  {validationError || authError}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <p className="text-sm text-muted-foreground">
+                  We'll never share your email with anyone else.
+                </p>
+              </div>
 
-                <Form.Group className="mb-3" controlId="formPassword">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                </Form.Group>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
 
-                <Form.Group className="mb-4" controlId="formConfirmPassword">
-                  <Form.Label>Confirm Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Confirm password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </Form.Group>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-                <div className="d-grid">
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating account...' : 'Register'}
-                  </Button>
-                </div>
-              </Form>
-            </Card.Body>
-            <Card.Footer className="text-center">
-              <p className="mb-0">
-                Already have an account?{' '}
-                <Link to="/login">Login here</Link>
-              </p>
-            </Card.Footer>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? 'Creating account...' : 'Register'}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                Login here
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 };
 

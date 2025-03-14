@@ -1,84 +1,70 @@
 import React from 'react';
-import { Form, Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface AuthFormProps {
-  email: string;
-  password: string;
-  onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent) => void;
-  loading?: boolean;
-  submitText: string;
-  loadingText: string;
-  showPasswordConfirm?: boolean;
-  confirmPassword?: string;
-  onConfirmPasswordChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  title: string;
+  error?: string;
+  children: React.ReactNode;
+  footerText: string;
+  footerLink: {
+    text: string;
+    to: string;
+  };
+  submitButton: {
+    text: string;
+    loading?: boolean;
+  };
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({
-  email,
-  password,
-  onEmailChange,
-  onPasswordChange,
-  onSubmit,
-  loading = false,
-  submitText,
-  loadingText,
-  showPasswordConfirm = false,
-  confirmPassword = '',
-  onConfirmPasswordChange
+  title,
+  error,
+  children,
+  footerText,
+  footerLink,
+  submitButton,
+  onSubmit
 }) => {
   return (
-    <Form onSubmit={onSubmit}>
-      <Form.Group className="mb-3" controlId="formEmail">
-        <Form.Label>Email address</Form.Label>
-        <Form.Control
-          type="email"
-          placeholder="Enter email"
-          value={email}
-          onChange={onEmailChange}
-          required
-        />
-        <Form.Text className="text-muted">
-          We'll never share your email with anyone else.
-        </Form.Text>
-      </Form.Group>
-
-      <Form.Group className="mb-3" controlId="formPassword">
-        <Form.Label>Password</Form.Label>
-        <Form.Control
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={onPasswordChange}
-          required
-          minLength={6}
-        />
-      </Form.Group>
-
-      {showPasswordConfirm && onConfirmPasswordChange && (
-        <Form.Group className="mb-4" controlId="formConfirmPassword">
-          <Form.Label>Confirm Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={onConfirmPasswordChange}
-            required
-          />
-        </Form.Group>
-      )}
-
-      <div className="d-grid">
-        <Button
-          variant="primary"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? loadingText : submitText}
-        </Button>
+    <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)] py-4">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">{title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <form onSubmit={onSubmit} className="space-y-4">
+              {children}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={submitButton.loading}
+              >
+                {submitButton.loading ? 'Please wait...' : submitButton.text}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-muted-foreground">
+              {footerText}{' '}
+              <Link to={footerLink.to} className="text-primary hover:underline">
+                {footerLink.text}
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
-    </Form>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Modal, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { wordListAPI } from '../services/api';
 import { 
@@ -9,9 +8,10 @@ import {
     WordListCard,
     WordListForm,
     ConfirmationModal,
-    ErrorAlert,
     SRSStatusCard 
 } from '../components';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface WordList {
     id: number;
@@ -28,7 +28,6 @@ interface EditForm {
 const WordListsPage: React.FC = () => {
     const [wordLists, setWordLists] = useState<WordList[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string>('');
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [selectedList, setSelectedList] = useState<WordList | null>(null);
@@ -41,11 +40,10 @@ const WordListsPage: React.FC = () => {
     const fetchWordLists = async (): Promise<void> => {
         try {
             setLoading(true);
-            setError('');
             const data = await wordListAPI.getWordLists();
             setWordLists(data);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to load word lists');
+            console.error('Failed to load word lists:', err);
         } finally {
             setLoading(false);
         }
@@ -68,10 +66,10 @@ const WordListsPage: React.FC = () => {
 
         try {
             await wordListAPI.updateWordList(selectedList.id, editForm.name, editForm.description);
-            await fetchWordLists();
             setShowEditModal(false);
+            fetchWordLists();
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to update word list');
+            console.error('Failed to update word list:', err);
         }
     };
 
@@ -80,80 +78,82 @@ const WordListsPage: React.FC = () => {
 
         try {
             await wordListAPI.deleteWordList(selectedList.id);
-            await fetchWordLists();
             setShowDeleteModal(false);
+            fetchWordLists();
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to delete word list');
+            console.error('Failed to delete word list:', err);
         }
     };
 
+    if (loading) {
+        return <LoadingSpinner />;
+    }
+
     return (
         <PageContainer>
-            <PageHeader
+            <PageHeader 
                 title="Word Lists"
                 actions={
-                    <Link to="/upload" className="btn btn-primary">
-                        <i className="fas fa-upload me-2"></i>
-                        Upload List
-                    </Link>
+                    <Button asChild>
+                        <Link to="/upload">Upload List</Link>
+                    </Button>
                 }
             />
 
             <SRSStatusCard />
 
-            {loading ? (
-                <LoadingSpinner />
-            ) : wordLists.length === 0 ? (
-                <div className="text-center p-5">
-                    <i className="fas fa-list fa-3x mb-3 text-muted"></i>
-                    <h3>No Word Lists Yet</h3>
-                    <p className="text-muted">
+            {wordLists.length === 0 ? (
+                <div className="text-center py-12">
+                    <i className="fas fa-list text-4xl mb-4 text-muted-foreground"></i>
+                    <h3 className="text-xl font-semibold mb-2">No Word Lists Yet</h3>
+                    <p className="text-muted-foreground mb-4">
                         Upload your first word list to start practicing
                     </p>
-                    <Link to="/upload" className="btn btn-primary">
-                        Upload Word List
-                    </Link>
+                    <Button asChild>
+                        <Link to="/upload">Upload Word List</Link>
+                    </Button>
                 </div>
             ) : (
-                <Row xs={1} md={2} lg={3} className="g-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {wordLists.map((list) => (
-                        <Col key={list.id}>
-                            <WordListCard
-                                {...list}
-                                onEdit={() => handleEdit(list)}
-                                onDelete={() => handleDelete(list)}
-                            />
-                        </Col>
+                        <WordListCard
+                            key={list.id}
+                            {...list}
+                            onEdit={() => handleEdit(list)}
+                            onDelete={() => handleDelete(list)}
+                        />
                     ))}
-                </Row>
+                </div>
             )}
 
-            {/* Edit Modal */}
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Word List</Modal.Title>
-                </Modal.Header>
-                <Form onSubmit={handleEditSubmit}>
-                    <Modal.Body>
+            <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Word List</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleEditSubmit} className="space-y-4">
                         <WordListForm
                             name={editForm.name}
                             description={editForm.description}
                             onNameChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                             onDescriptionChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                         />
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit">
-                            Save Changes
-                        </Button>
-                    </Modal.Footer>
-                </Form>
-            </Modal>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setShowEditModal(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit">
+                                Save Changes
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
-            {/* Delete Confirmation Modal */}
             <ConfirmationModal
                 show={showDeleteModal}
                 onHide={() => setShowDeleteModal(false)}
@@ -161,7 +161,7 @@ const WordListsPage: React.FC = () => {
                 title="Delete Word List"
                 message={`Are you sure you want to delete "${selectedList?.name}"? This action cannot be undone.`}
                 confirmLabel="Delete"
-                confirmVariant="danger"
+                confirmVariant="destructive"
             />
         </PageContainer>
     );

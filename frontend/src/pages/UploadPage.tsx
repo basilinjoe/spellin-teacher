@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { wordListAPI } from '../services/api';
 import { 
@@ -8,6 +7,10 @@ import {
     PageContainer,
     PageHeader 
 } from '../components';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface UploadForm {
     name: string;
@@ -44,27 +47,24 @@ const UploadPage: React.FC = () => {
 
     return (
         <PageContainer>
-            <PageHeader 
-                title="Upload Word List"
-                description="Upload a CSV file containing words, meanings, and example sentences."
-            />
+            <PageHeader title="Upload Word List" />
 
             <Card>
-                <Card.Body>
+                <CardContent className="pt-6">
                     <ErrorAlert error={error} />
                     
-                    <Form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <WordListForm
                             name={form.name}
                             description={form.description}
                             onNameChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
                             onDescriptionChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-                            disabled={loading}
                         />
-
-                        <Form.Group className="mb-4">
-                            <Form.Label>CSV File</Form.Label>
-                            <Form.Control
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="file">CSV File</Label>
+                            <Input
+                                id="file"
                                 type="file"
                                 accept=".csv"
                                 onChange={(e) => {
@@ -74,36 +74,34 @@ const UploadPage: React.FC = () => {
                                 disabled={loading}
                                 required
                             />
-                            <Form.Text className="text-muted">
+                            <p className="text-sm text-muted-foreground">
                                 The CSV file should have columns: word,meaning,example
-                            </Form.Text>
-                        </Form.Group>
+                            </p>
+                        </div>
 
                         <Card className="mb-4">
-                            <Card.Header>
-                                <h5 className="mb-0">CSV Format Example</h5>
-                            </Card.Header>
-                            <Card.Body>
-                                <pre className="mb-0">
+                            <CardHeader>
+                                <h5 className="text-lg font-semibold">CSV Format Example</h5>
+                            </CardHeader>
+                            <CardContent>
+                                <pre className="text-sm bg-muted/50 p-4 rounded-md">
                                     word,meaning,example{'\n'}
                                     accommodate,to provide lodging or room for,The hotel can accommodate up to 500 guests{'\n'}
                                     rhythm,a strong regular repeated pattern,She danced to the rhythm of the music
                                 </pre>
-                            </Card.Body>
+                            </CardContent>
                         </Card>
 
-                        <div className="d-grid">
-                            <Button
-                                variant="primary"
-                                type="submit"
-                                size="lg"
-                                disabled={loading}
-                            >
-                                {loading ? 'Uploading...' : 'Upload Word List'}
-                            </Button>
-                        </div>
-                    </Form>
-                </Card.Body>
+                        <Button
+                            type="submit"
+                            size="lg"
+                            className="w-full"
+                            disabled={loading}
+                        >
+                            {loading ? 'Uploading...' : 'Upload Word List'}
+                        </Button>
+                    </form>
+                </CardContent>
             </Card>
         </PageContainer>
     );

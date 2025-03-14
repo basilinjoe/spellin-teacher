@@ -122,15 +122,19 @@ class SRSStatsResponse(BaseModel):
     total_words: int
     total_due: int
     level_counts: Dict[int, int]
+    accuracy: float
+    words_studied: int
 
 class ReviewWordRequest(BaseModel):
     word_id: int
 
 class ReviewWordResponse(BaseModel):
+    id: int
     word: str
     meaning: Optional[str] = None
     example: Optional[str] = None
     audio_url: str
+    srs_level: int
 
 class ReviewSubmitRequest(BaseModel):
     user_spelling: str

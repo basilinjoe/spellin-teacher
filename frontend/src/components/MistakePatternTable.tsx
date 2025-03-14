@@ -15,26 +15,32 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+interface Word {
+  id: number;
+  word: string;
+}
+
 interface MistakePattern {
   id: number;
-  pattern_type: string;
+  word?: Word;
   description: string;
+  examples: string[];
   frequency: number;
-  examples: string[][];
-  word?: {
-    word: string;
-  };
+}
+
+interface MistakePatterns {
+  [key: string]: MistakePattern[];
 }
 
 interface MistakePatternTableProps {
-  patterns: Record<string, MistakePattern[]>;
+  patterns: MistakePatterns;
 }
 
 const MistakePatternTable: React.FC<MistakePatternTableProps> = ({ patterns }) => {
   return (
-    <>
+    <div className="space-y-6">
       {Object.entries(patterns).map(([type, typePatterns]) => (
-        <Card key={type} className="mb-4">
+        <Card key={type}>
           <CardHeader>
             <CardTitle className="capitalize">{type} Patterns</CardTitle>
           </CardHeader>
@@ -66,7 +72,7 @@ const MistakePatternTable: React.FC<MistakePatternTableProps> = ({ patterns }) =
           </CardContent>
         </Card>
       ))}
-    </>
+    </div>
   );
 };
 

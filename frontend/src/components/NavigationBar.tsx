@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Menu } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import { ThemeToggle } from './ThemeToggle';
 
 const NavigationBar: React.FC = () => {
   const context = useContext(AuthContext);
@@ -42,7 +43,8 @@ const NavigationBar: React.FC = () => {
         </div>
 
         {/* Mobile Nav */}
-        <div className="flex flex-1 items-center justify-end space-x-2 md:justify-end">
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <ThemeToggle />
           {currentUser ? (
             <div className="flex items-center gap-4">
               <div className="hidden md:flex md:items-center md:gap-2">

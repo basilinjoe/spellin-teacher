@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { WelcomeFeatureCard } from '../components';
+import { Button } from '@/components/ui/button';
 
 const HomePage: React.FC = () => {
   const auth = useContext(AuthContext);
@@ -32,52 +32,52 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center text-center mb-5">
-        <Col md={8}>
-          <h1 className="display-4 mb-4">Welcome to Spelling Teacher</h1>
-          <p className="lead">
+    <div className="container py-8">
+      <div className="flex flex-col items-center text-center mb-12">
+        <div className="max-w-2xl">
+          <h1 className="text-4xl font-bold mb-4">Welcome to Spelling Teacher</h1>
+          <p className="text-xl text-muted-foreground mb-6">
             Improve your spelling through interactive practice with audio pronunciation
           </p>
           {!currentUser && (
-            <div className="mt-4">
-              <Link to="/register" className="btn btn-primary btn-lg me-3">
-                Get Started
-              </Link>
-              <Link to="/login" className="btn btn-outline-primary btn-lg">
-                Login
-              </Link>
+            <div className="flex gap-3 justify-center">
+              <Button asChild size="lg">
+                <Link to="/register">Get Started</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link to="/login">Login</Link>
+              </Button>
             </div>
           )}
-        </Col>
-      </Row>
+        </div>
+      </div>
 
-      <Row xs={1} md={2} lg={4} className="g-4 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {features.map((feature, index) => (
-          <Col key={index}>
-            <WelcomeFeatureCard {...feature} />
-          </Col>
+          <WelcomeFeatureCard key={index} {...feature} />
         ))}
-      </Row>
+      </div>
 
       {currentUser && (
-        <div className="text-center mt-5">
-          <Link to="/word-lists" className="btn btn-primary btn-lg me-3">
-            Go to Word Lists
-          </Link>
-          <Link to="/review" className="btn btn-outline-primary btn-lg">
-            Start Review
-          </Link>
+        <div className="text-center">
+          <div className="flex gap-3 justify-center">
+            <Button asChild size="lg">
+              <Link to="/word-lists">Go to Word Lists</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/review">Start Review</Link>
+            </Button>
+          </div>
         </div>
       )}
 
-      <footer className="text-center mt-5 pt-5 text-muted">
-        <p>
+      <footer className="text-center mt-12">
+        <p className="text-muted-foreground">
           Start improving your spelling today with our interactive audio-based
           learning system powered by spaced repetition technology.
         </p>
       </footer>
-    </Container>
+    </div>
   );
 };
 

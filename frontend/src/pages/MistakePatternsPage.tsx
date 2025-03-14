@@ -7,23 +7,28 @@ import {
     PageHeader,
     MistakePatternTable
 } from '../components';
-import { Alert } from 'react-bootstrap';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MistakePattern {
     id: number;
-    pattern_type: string;
+    word?: {
+        id: number;
+        word: string;
+    };
     description: string;
     frequency: number;
     examples: string[];
-    word?: {
-        word: string;
-    };
 }
 
 interface WordList {
     id: number;
     name: string;
     description?: string;
+}
+
+interface MistakePatternResponse {
+    pattern: string;
+    count: number;
 }
 
 type RouteParams = {
@@ -33,7 +38,7 @@ type RouteParams = {
 
 const MistakePatternsPage: React.FC = () => {
     const { listId } = useParams<RouteParams>();
-    const [patterns, setPatterns] = useState<MistakePattern[]>([]);
+    const [patterns, setPatterns] = useState<MistakePatternResponse[]>([]);
     const [wordList, setWordList] = useState<WordList | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
@@ -47,52 +52,52 @@ const MistakePatternsPage: React.FC = () => {
             setLoading(true);
             setError('');
 
-            const patternsPromise = practiceAPI.getMistakePatterns(listId ? parseInt(listId) : null);
-            let wordListPromise;
             if (listId) {
-                wordListPromise = wordListAPI.getWordList(parseInt(listId));
+                const [listData, patternsData] = await Promise.all([
+                    wordListAPI.getWordList(parseInt(listId)),
+                    practiceAPI.getMistakePatterns(parseInt(listId))
+                ]);
+                setWordList(listData);
+                setPatterns(patternsData);
+            } else {
+                const patternsData = await practiceAPI.getMistakePatterns();
+                setPatterns(patternsData);
             }
-
-            const [patternsData, wordListData] = await Promise.all([
-                patternsPromise,
-                wordListPromise
-            ].filter(Boolean) as [Promise<MistakePattern[]>, Promise<WordList>?]);
-
-            setPatterns(patternsData);
-            if (wordListData) {
-                setWordList(wordListData);
-            }
-        } catch (err) {
-            setError((err as any).response?.data?.detail || 'Failed to load mistake patterns');
+        } catch (err: any) {
+            setError(err.response?.data?.detail || 'Failed to load mistake patterns');
         } finally {
             setLoading(false);
         }
     };
 
-    // Group patterns by type
-    const groupedPatterns: Record<string, MistakePattern[]> = patterns.reduce((groups, pattern) => {
-        const group = groups[pattern.pattern_type] || [];
-        group.push(pattern);
-        groups[pattern.pattern_type] = group;
-        return groups;
-    }, {} as Record<string, MistakePattern[]>);
+    const transformPatterns = (patterns: MistakePatternResponse[]): { [key: string]: MistakePattern[] } => {
+        return {
+            'mistake': patterns.map((p, index) => ({
+                id: index,
+                description: p.pattern,
+                frequency: p.count,
+                examples: []
+            }))
+        };
+    };
 
     if (loading) {
         return <LoadingSpinner />;
     }
 
     return (
-        <PageContainer error={error}>
-            <PageHeader
-                title={wordList ? `Mistake Patterns - ${wordList.name}` : 'All Mistake Patterns'}
+        <PageContainer>
+            <PageHeader 
+                title={wordList ? `${wordList.name} - Mistake Patterns` : 'All Mistake Patterns'}
+                description={wordList?.description}
             />
 
-            {patterns.length === 0 ? (
-                <Alert variant="info">
-                    No mistake patterns found. Practice more words to see your common mistakes here.
+            {error ? (
+                <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
                 </Alert>
             ) : (
-                <MistakePatternTable patterns={groupedPatterns} />
+                <MistakePatternTable patterns={transformPatterns(patterns)} />
             )}
         </PageContainer>
     );

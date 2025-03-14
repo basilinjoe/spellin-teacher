@@ -1,44 +1,45 @@
 import React from 'react';
-import { Form } from 'react-bootstrap';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface WordListFormProps {
   name: string;
   description: string;
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDescriptionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  disabled?: boolean;
 }
 
 const WordListForm: React.FC<WordListFormProps> = ({
   name,
   description,
   onNameChange,
-  onDescriptionChange,
-  disabled = false
+  onDescriptionChange
 }) => {
   return (
-    <>
-      <Form.Group className="mb-3">
-        <Form.Label>List Name</Form.Label>
-        <Form.Control
-          type="text"
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">List Name</Label>
+        <Input
+          id="name"
           value={name}
           onChange={onNameChange}
-          disabled={disabled}
+          placeholder="Enter list name"
           required
         />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Description (Optional)</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={3}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
           value={description}
           onChange={onDescriptionChange}
-          disabled={disabled}
+          placeholder="Enter list description (optional)"
+          rows={3}
         />
-      </Form.Group>
-    </>
+      </div>
+    </div>
   );
 };
 

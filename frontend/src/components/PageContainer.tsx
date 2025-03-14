@@ -1,5 +1,4 @@
 import React from 'react';
-import { Container } from 'react-bootstrap';
 import ErrorAlert from './ErrorAlert';
 
 interface PageContainerProps {
@@ -16,10 +15,10 @@ const PageContainer: React.FC<PageContainerProps> = ({
   className = ''
 }) => {
   return (
-    <Container className={`py-4 ${className}`}>
+    <div className={`container py-4 ${className}`}>
       {error && <ErrorAlert error={error} />}
       {children}
-    </Container>
+    </div>
   );
 };
 

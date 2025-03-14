@@ -1,11 +1,11 @@
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { XIcon } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface ErrorAlertProps {
-  error?: string | null;
+  error: string;
   dismissible?: boolean;
   onDismiss?: () => void;
   className?: string;
@@ -24,16 +24,17 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({
       variant="destructive"
       className={cn('mb-4', className)}
     >
+      <AlertCircle className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between">
-        {error}
+        <span>{error}</span>
         {dismissible && onDismiss && (
           <Button 
             variant="ghost" 
-            size="sm"
+            size="icon"
             onClick={onDismiss}
-            className="h-auto p-0 hover:bg-transparent"
+            className="h-auto p-0.5 hover:bg-transparent hover:opacity-75"
           >
-            <XIcon className="h-4 w-4" />
+            <X className="h-4 w-4" />
             <span className="sr-only">Dismiss</span>
           </Button>
         )}

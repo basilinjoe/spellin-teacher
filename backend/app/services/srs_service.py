@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
+from sqlalchemy import and_, func, desc
 
 from app.models.models import Word, WordList
 
@@ -22,6 +22,8 @@ class SRSService:
     async def get_due_words(self, db: AsyncSession, user_id: int, limit: int = 20) -> List[Word]:
         """Get words that are due for review"""
         current_time = datetime.utcnow()
+        
+        # First get words that are due for review
         result = await db.execute(
             select(Word)
             .join(WordList)
@@ -31,14 +33,41 @@ class SRSService:
                     Word.next_review <= current_time
                 )
             )
-            .order_by(Word.next_review)
+            .order_by(desc(Word.srs_level), Word.next_review)
             .limit(limit)
         )
-        return result.scalars().all()
-    
+        due_words = result.scalars().all()
+        
+        # If we don't have enough due words, get some new words
+        if len(due_words) < limit:
+            remaining = limit - len(due_words)
+            result = await db.execute(
+                select(Word)
+                .join(WordList)
+                .filter(
+                    and_(
+                        WordList.owner_id == user_id,
+                        Word.next_review == None,
+                        Word.srs_level == 0
+                    )
+                )
+                .order_by(func.random())
+                .limit(remaining)
+            )
+            new_words = result.scalars().all()
+            due_words.extend(new_words)
+        
+        return due_words
+
     async def process_review_result(self, db: AsyncSession, word: Word, correct: bool) -> None:
         """Process the result of a word review and update SRS accordingly"""
         current_time = datetime.utcnow()
+        
+        # Initialize stats if this is the first review
+        if word.practice_count is None:
+            word.practice_count = 0
+            word.correct_count = 0
+            word.incorrect_count = 0
         
         # Update practice statistics
         word.practice_count += 1
@@ -49,29 +78,41 @@ class SRSService:
             # Advance SRS level if correct (max 5)
             if word.srs_level < 5:
                 word.srs_level += 1
+            # If already at max level, extend the interval by 25%
+            elif word.review_interval:
+                word.review_interval = int(word.review_interval * 1.25)
         else:
             word.incorrect_count += 1
             # Reset SRS level to 0 if incorrect
             word.srs_level = 0
         
         # Update review interval and next review time
-        word.review_interval = self.INTERVALS[word.srs_level]
+        base_interval = self.INTERVALS[word.srs_level]
+        # Add some randomness to prevent all words being due at the same time
+        jitter = base_interval * 0.1  # 10% jitter
+        final_interval = base_interval + (jitter * (0.5 - func.random()))
+        
+        word.review_interval = int(final_interval)
         word.next_review = current_time + timedelta(hours=word.review_interval)
         
-        # Mark as familiar if accuracy is good
+        # Mark as familiar if accuracy is good (>=80%) after at least 3 reviews
         if word.practice_count >= 3 and (word.correct_count / word.practice_count) >= 0.8:
             word.familiar = True
         
         await db.commit()
-    
+
     async def initialize_word(self, db: AsyncSession, word: Word) -> None:
         """Initialize SRS for a new word"""
         current_time = datetime.utcnow()
         word.srs_level = 0
         word.review_interval = self.INTERVALS[0]
         word.next_review = current_time + timedelta(hours=word.review_interval)
+        word.practice_count = 0
+        word.correct_count = 0
+        word.incorrect_count = 0
+        word.familiar = False
         await db.commit()
-    
+
     async def get_user_stats(self, db: AsyncSession, user_id: int) -> Dict:
         """Get SRS statistics for the user"""
         current_time = datetime.utcnow()
@@ -84,20 +125,37 @@ class SRSService:
         )
         words = result.scalars().all()
         
+        if not words:
+            return {
+                "total_words": 0,
+                "total_due": 0,
+                "level_counts": {i: 0 for i in range(6)},
+                "accuracy": 0,
+                "words_studied": 0
+            }
+        
         total_words = len(words)
         total_due = sum(1 for word in words if word.next_review and word.next_review <= current_time)
+        total_practiced = sum(1 for word in words if word.practice_count and word.practice_count > 0)
+        
+        # Calculate overall accuracy
+        total_correct = sum(word.correct_count or 0 for word in words)
+        total_attempts = sum(word.practice_count or 0 for word in words)
+        accuracy = (total_correct / total_attempts) if total_attempts > 0 else 0
         
         # Count words at each SRS level
         level_counts = {i: 0 for i in range(6)}  # 0-5 levels
         for word in words:
-            level_counts[word.srs_level] += 1
+            if word.srs_level is not None:
+                level_counts[word.srs_level] += 1
         
         return {
             "total_words": total_words,
             "total_due": total_due,
-            "level_counts": level_counts
+            "level_counts": level_counts,
+            "accuracy": accuracy,
+            "words_studied": total_practiced
         }
-
 
 # Create singleton instance
 srs_service = SRSService()
