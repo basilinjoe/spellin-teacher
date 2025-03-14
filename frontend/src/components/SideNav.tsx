@@ -5,7 +5,6 @@ import { useSidebar } from '../contexts/SidebarContext';
 import { cn } from '@/lib/utils';
 import { 
   List, 
-  Upload, 
   GraduationCap, 
   AlertTriangle, 
   Volume2,
@@ -20,18 +19,12 @@ const SideNav: React.FC = () => {
   const { collapsed, toggleSidebar } = useSidebar();
 
   if (!authContext?.currentUser) return null;
-  const { currentUser } = authContext;
 
   const navItems = [
     {
       name: 'Word Lists',
       path: '/word-lists',
       icon: <List className="h-5 w-5" />
-    },
-    {
-      name: 'Upload List',
-      path: '/upload',
-      icon: <Upload className="h-5 w-5" />
     },
     {
       name: 'Review',

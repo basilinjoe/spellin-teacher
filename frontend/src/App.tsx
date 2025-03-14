@@ -12,7 +12,6 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WordListsPage from './pages/WordListsPage';
-import UploadPage from './pages/UploadPage';
 import PracticePage from './pages/PracticePage';
 import ProgressPage from './pages/ProgressPage';
 import MistakePatternsPage from './pages/MistakePatternsPage';
@@ -53,11 +52,6 @@ const MainContent: React.FC = () => {
         <Route path="/word-lists" element={
           <ProtectedRoute>
             <WordListsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/upload" element={
-          <ProtectedRoute>
-            <UploadPage />
           </ProtectedRoute>
         } />
         <Route path="/practice/:listId" element={

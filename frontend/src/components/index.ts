@@ -15,3 +15,5 @@ export { default as SRSStatusCard } from './SRSStatusCard';
 // Forms
 export { default as AuthForm } from './forms/AuthForm';
 export { default as WordListForm } from './forms/WordListForm';
+
+export * from './UploadWordListDialog';

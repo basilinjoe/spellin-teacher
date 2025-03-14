@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { wordListService, practiceService } from '../services';
 import { 
     LoadingSpinner, 
@@ -8,7 +7,8 @@ import {
     WordListCard,
     WordListForm,
     ConfirmationModal,
-    SRSStatusCard 
+    SRSStatusCard,
+    UploadWordListDialog 
 } from '../components';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,7 @@ const WordListsPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
     const [selectedList, setSelectedList] = useState<WordList | null>(null);
     const [editForm, setEditForm] = useState<EditForm>({ name: '', description: '' });
     const [search, setSearch] = useState('');
@@ -114,28 +115,36 @@ const WordListsPage: React.FC = () => {
         }
     };
 
+    const handleUploadClick = (): void => {
+        setShowUploadModal(true);
+    };
+
     const getSortedAndFilteredLists = () => {
-        let filtered = wordLists.filter(list =>
+        let filtered = wordLists.filter(list => 
             list.name.toLowerCase().includes(search.toLowerCase()) ||
             list.description.toLowerCase().includes(search.toLowerCase())
         );
 
-        return filtered.sort((a, b) => {
-            switch (sortBy) {
-                case 'name':
-                    return a.name.localeCompare(b.name);
-                case 'created':
-                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                case 'progress':
-                    const aStats = wordListStats[a.id];
-                    const bStats = wordListStats[b.id];
-                    const aProgress = aStats ? aStats.practiced_words / aStats.total_words : 0;
-                    const bProgress = bStats ? bStats.practiced_words / bStats.total_words : 0;
-                    return bProgress - aProgress;
-                default:
-                    return 0;
-            }
-        });
+        switch (sortBy) {
+            case 'name':
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'created':
+                filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                break;
+            case 'progress':
+                filtered.sort((a, b) => {
+                    const statsA = wordListStats[a.id];
+                    const statsB = wordListStats[b.id];
+                    if (!statsA && !statsB) return 0;
+                    if (!statsA) return 1;
+                    if (!statsB) return -1;
+                    return (statsB.practiced_words / statsB.total_words) - (statsA.practiced_words / statsA.total_words);
+                });
+                break;
+        }
+
+        return filtered;
     };
 
     if (loading) {
@@ -147,8 +156,8 @@ const WordListsPage: React.FC = () => {
             <PageHeader 
                 title="Word Lists"
                 actions={
-                    <Button asChild>
-                        <Link to="/upload">Upload List</Link>
+                    <Button onClick={handleUploadClick}>
+                        Upload List
                     </Button>
                 }
             />
@@ -185,8 +194,8 @@ const WordListsPage: React.FC = () => {
                         {search ? 'Try different search terms' : 'Upload your first word list to start practicing'}
                     </p>
                     {!search && (
-                        <Button asChild>
-                            <Link to="/upload">Upload Word List</Link>
+                        <Button onClick={handleUploadClick}>
+                            Upload Word List
                         </Button>
                     )}
                 </div>
@@ -204,6 +213,13 @@ const WordListsPage: React.FC = () => {
                 </div>
             )}
 
+            <UploadWordListDialog 
+                open={showUploadModal}
+                onOpenChange={setShowUploadModal}
+                onUploadSuccess={fetchWordLists}
+            />
+
+            {/* Edit Word List Dialog */}
             <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
                 <DialogContent>
                     <DialogHeader>
