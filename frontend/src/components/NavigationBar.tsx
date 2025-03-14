@@ -7,8 +7,7 @@ import { Menu, List, AlertTriangle, LayoutDashboard } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { AnimatePresence } from 'framer-motion';
 
 const NavigationBar: React.FC = () => {
   const context = useContext(AuthContext);
@@ -17,7 +16,6 @@ const NavigationBar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { isScrolled, scrollDirection } = useScrollAnimation(20);
 
   const handleLogout = (): void => {
     logout();
@@ -49,32 +47,13 @@ const NavigationBar: React.FC = () => {
   };
 
   return (
-    <motion.header
-      initial={{ y: 0 }}
-      animate={{ 
-        y: scrollDirection === 'down' ? -100 : 0,
-        height: isScrolled ? '3rem' : '3.5rem'
-      }}
-      transition={{ 
-        type: 'spring', 
-        stiffness: 300, 
-        damping: 30,
-        height: {
-          duration: 0.2
-        }
-      }}
+    <header
       className={cn(
-        "sticky top-0 z-40 w-full border-b backdrop-blur",
+        "sticky top-0 z-40 w-full border-b backdrop-blur bg-background",
         "transition-[background-color,border-color]",
-        isScrolled 
-          ? "bg-background/95 supports-[backdrop-filter]:bg-background/60 border-muted" 
-          : "bg-background border-transparent"
       )}
     >
-      <div className={cn(
-        "container flex items-center px-4 h-full",
-        "transition-all duration-200"
-      )}>
+      <div className="container flex items-center px-4 h-14">
         <Link 
           to="/" 
           className="flex items-center space-x-2 transition-transform hover:scale-105 mr-8"
@@ -87,17 +66,9 @@ const NavigationBar: React.FC = () => {
 
         {currentUser && (
           <nav className="hidden md:flex flex-1">
-            <motion.ul 
-              className="flex items-center gap-4 text-sm"
-              initial={false}
-            >
+            <ul className="flex items-center gap-4 text-sm">
               {navItems.map((item) => (
-                <motion.li
-                  key={item.path}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                >
+                <li key={item.path}>
                   <Link
                     to={item.path}
                     className={cn(
@@ -109,9 +80,9 @@ const NavigationBar: React.FC = () => {
                     {item.icon}
                     <span>{item.name}</span>
                   </Link>
-                </motion.li>
+                </li>
               ))}
-            </motion.ul>
+            </ul>
           </nav>
         )}
 
@@ -119,12 +90,7 @@ const NavigationBar: React.FC = () => {
           <ThemeToggle />
           <AnimatePresence mode="wait">
             {currentUser ? (
-              <motion.div 
-                className="flex items-center gap-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-              >
+              <div className="flex items-center gap-4">
                 <div className="hidden md:flex md:items-center md:gap-2">
                   <Avatar className="h-8 w-8 transition-transform hover:scale-105">
                     <AvatarFallback className="text-sm bg-primary/10 text-primary">
@@ -141,26 +107,21 @@ const NavigationBar: React.FC = () => {
                 >
                   Logout
                 </Button>
-              </motion.div>
+              </div>
             ) : (
-              <motion.div 
-                className="flex items-center gap-2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-              >
+              <div className="flex items-center gap-2">
                 <Button variant="ghost" asChild size="sm" className="transition-transform hover:scale-105">
                   <Link to="/login">Login</Link>
                 </Button>
                 <Button variant="default" asChild size="sm" className="transition-transform hover:scale-105">
                   <Link to="/register">Register</Link>
                 </Button>
-              </motion.div>
+              </div>
             )}
           </AnimatePresence>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 };
 
