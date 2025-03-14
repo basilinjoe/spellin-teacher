@@ -10,8 +10,8 @@ class MistakePatternService:
         # Common phonetic patterns
         self.phonetic_patterns = {
             'ie/ei': (r'ie|ei', ['ie', 'ei']),
-            'silent_e': (r'e$', ''),
-            'double_consonants': (r'([a-z])\1', r'\1'),
+            'silent_e': (r'e$', ['']),  # Changed to list for consistency
+            'double_consonants': (r'([a-z])\1', [r'\1']),  # Changed to list
             'ph/f': (r'ph|f', ['ph', 'f']),
             'ough': (r'ough', ['off', 'uf', 'ow', 'o']),
             'tion/sion': (r'tion|sion', ['tion', 'sion', 'shun', 'zhun']),
@@ -61,12 +61,16 @@ class MistakePatternService:
     def _check_phonetic_patterns(self, correct: str, attempt: str) -> Dict:
         """Check for common phonetic-based spelling mistakes"""
         for name, (pattern, alternatives) in self.phonetic_patterns.items():
-            if re.search(pattern, correct):
+            match = re.search(pattern, correct)
+            if match:
                 # Find which alternative was used in the attempt
-                correct_part = re.search(pattern, correct).group()
+                correct_part = match.group(0)
+                # Create a pattern that matches the whole word structure
+                word_pattern = re.escape(correct).replace(re.escape(correct_part), pattern)
+                
                 for alt in alternatives:
-                    # Replace the pattern with each alternative and check if it matches
-                    test_word = re.sub(pattern, alt, correct)
+                    # Create test word by replacing the matched part
+                    test_word = re.sub(word_pattern, lambda m: re.sub(pattern, alt, m.group(0)), correct)
                     if test_word == attempt:
                         return {
                             'pattern_type': 'phonetic',
