@@ -4,6 +4,7 @@ import { practiceAPI, wordListAPI } from '../services/api';
 import { LoadingSpinner, ErrorAlert, StatsCard, WordTable, PageHeader, PageContainer } from '../components';
 import { Button } from "@/components/ui/button";
 import { Word as TableWord } from '../components/WordTable';
+import { Card } from "@/components/ui/card";
 
 interface WordListResponse {
     id: number;
@@ -107,33 +108,41 @@ const ProgressPage: React.FC = () => {
     );
 
     return (
-        <PageContainer>
+        <PageContainer className="space-y-8">
             <PageHeader
                 title={wordList.name}
                 description={wordList.description}
                 actions={actions}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <StatsCard 
-                    value={stats.total_words}
-                    label="Total Words"
-                />
-                <StatsCard 
-                    value={stats.practiced_words}
-                    label="Words Practiced"
-                />
-                <StatsCard 
-                    value={stats.familiar_words}
-                    label="Familiar Words"
-                />
-                <StatsCard 
-                    value={`${(stats.accuracy * 100).toFixed(1)}%`}
-                    label="Accuracy"
-                />
-            </div>
+            <Card className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatsCard 
+                        value={stats.total_words}
+                        label="Total Words"
+                        className="bg-background/50"
+                    />
+                    <StatsCard 
+                        value={stats.practiced_words}
+                        label="Words Practiced"
+                        className="bg-background/50"
+                    />
+                    <StatsCard 
+                        value={stats.familiar_words}
+                        label="Familiar Words"
+                        className="bg-background/50"
+                    />
+                    <StatsCard 
+                        value={`${(stats.accuracy * 100).toFixed(1)}%`}
+                        label="Accuracy"
+                        className="bg-background/50"
+                    />
+                </div>
+            </Card>
 
-            <WordTable words={words} />
+            <Card className="p-6">
+                <WordTable words={words} />
+            </Card>
         </PageContainer>
     );
 };

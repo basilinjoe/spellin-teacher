@@ -23,7 +23,7 @@ import './App.css';
 const App: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="light" storageKey="spelling-teacher-theme">
-      <Router>
+      <Router future={{ v7_relativeSplatPath: true }}>
         <AuthProvider>
           <div className="min-h-screen bg-background">
             <NavigationBar />

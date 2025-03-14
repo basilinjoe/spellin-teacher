@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { reviewAPI } from '../services/api';
+import { reviewAPI, getAudioUrl } from '../services/api';
 import { 
     LoadingSpinner, 
     ErrorAlert, 
@@ -71,7 +71,8 @@ const ReviewPage: React.FC = () => {
                 return;
             }
             setCurrentWord(word);
-            setAudioUrl(word.audio_url);
+            // Apply the getAudioUrl function to ensure the URL is complete
+            setAudioUrl(word.audio_url ? getAudioUrl(word.audio_url) : null);
             setResult(null);
             setUserInput('');
         } catch (err: any) {

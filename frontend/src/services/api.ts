@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosRequestHeaders, AxiosError } from 'axios';
 
 /// <reference types="vite/client" />
 
@@ -12,7 +12,7 @@ interface WordList {
 }
 
 interface Word {
-  id: number;
+  word_id: number;
   word: string;
   definition: string;
   audio_url: string;
@@ -54,13 +54,57 @@ interface TTSResponse {
   failed: number;
 }
 
+// Backend API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 // Create axios instance with base URL and default config
 export const axiosInstance: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Utility to get the full URL for audio files
+export const getAudioUrl = (relativeUrl: string): string => {
+  if (!relativeUrl) return '';
+  
+  // If it's already an absolute URL (starts with http:// or https://)
+  if (relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) {
+    return relativeUrl;
+  }
+  
+  // If it's a relative URL
+  if (relativeUrl.startsWith('/')) {
+    return `${API_BASE_URL}${relativeUrl}`;
+  }
+  
+  // If it doesn't start with /, add one
+  return `${API_BASE_URL}/${relativeUrl}`;
+};
+
+// Helper function to extract error message from Axios errors
+const extractErrorMessage = (error: any): string => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    const responseData = axiosError.response?.data as any;
+    
+    if (responseData) {
+      if (typeof responseData === 'string') return responseData;
+      if (responseData.detail) return responseData.detail;
+      if (responseData.message) return responseData.message;
+      if (Array.isArray(responseData)) return responseData.join(', ');
+      return JSON.stringify(responseData);
+    }
+    return axiosError.message;
+  }
+  // Handle case when error is an object but not an Axios error
+  if (error && typeof error === 'object') {
+    if (error.message) return error.message;
+    return JSON.stringify(error);
+  }
+  return error?.toString() || 'An unknown error occurred';
+};
 
 // Add token to requests if available
 axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -109,18 +153,33 @@ axiosInstance.interceptors.response.use(
 // Word List API methods
 export const wordListAPI = {
   getWordLists: async (): Promise<WordList[]> => {
-    const response = await axiosInstance.get<WordList[]>('/api/v1/word-lists');
-    return response.data;
+    try {
+      const response = await axiosInstance.get<WordList[]>('/api/v1/word-lists');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching word lists:', error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   getWordList: async (id: number): Promise<WordList> => {
-    const response = await axiosInstance.get<WordList>(`/api/v1/word-lists/${id}`);
-    return response.data;
+    try {
+      const response = await axiosInstance.get<WordList>(`/api/v1/word-lists/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching word list ${id}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   getWordsInList: async (id: number): Promise<Word[]> => {
-    const response = await axiosInstance.get<Word[]>(`/api/v1/word-lists/${id}/words`);
-    return response.data;
+    try {
+      const response = await axiosInstance.get<Word[]>(`/api/v1/word-lists/${id}/words`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching words for list ${id}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   uploadWordList: async (name: string, description: string, file: File): Promise<WordList> => {
@@ -129,87 +188,153 @@ export const wordListAPI = {
     formData.append('description', description || '');
     formData.append('file', file);
 
-    const response = await axiosInstance.post<WordList>('/api/v1/word-lists/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const response = await axiosInstance.post<WordList>('/api/v1/word-lists/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading word list:', error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   updateWordList: async (id: number, name: string, description: string): Promise<WordList> => {
-    const response = await axiosInstance.put<WordList>(`/api/v1/word-lists/${id}`, {
-      name,
-      description
-    });
-    return response.data;
+    try {
+      const response = await axiosInstance.put<WordList>(`/api/v1/word-lists/${id}`, {
+        name,
+        description
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating word list ${id}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   deleteWordList: async (id: number): Promise<void> => {
-    await axiosInstance.delete(`/api/v1/word-lists/${id}`);
+    try {
+      await axiosInstance.delete(`/api/v1/word-lists/${id}`);
+    } catch (error) {
+      console.error(`Error deleting word list ${id}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   getSimilarWords: async (wordId: number): Promise<Word[]> => {
-    const response = await axiosInstance.get<Word[]>(`/api/v1/word-lists/words/${wordId}/similar`);
-    return response.data;
+    try {
+      const response = await axiosInstance.get<Word[]>(`/api/v1/word-lists/words/${wordId}/similar`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching similar words for word ${wordId}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 };
 
 // Practice API methods
 export const practiceAPI = {
   getWordForPractice: async (wordListId: number, speed: 'slow' | 'normal' = 'normal'): Promise<Word> => {
-    const response = await axiosInstance.post<Word>('/api/v1/practice/get-word', {
-      word_list_id: wordListId,
-      speed: speed
-    });
-    return response.data;
+    try {
+      const response = await axiosInstance.post<Word>('/api/v1/practice/get-word', {
+        word_list_id: wordListId,
+        speed: speed
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error getting practice word for list ${wordListId}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   submitPractice: async (wordId: number, userSpelling: string): Promise<PracticeResponse> => {
-    const response = await axiosInstance.post<PracticeResponse>('/api/v1/practice/submit', {
-      word_id: wordId,
-      user_spelling: userSpelling,
-    });
-    return response.data;
+    try {
+      // Explicitly create the request body and log it for debugging
+      const requestBody = {
+        word_id: wordId,  // This is correct - using word_id as the property name
+        user_spelling: userSpelling,
+      };
+      console.log('Submit practice request body:', requestBody);
+      
+      const response = await axiosInstance.post<PracticeResponse>('/api/v1/practice/submit', requestBody);
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting practice:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 422) {
+        console.error('Validation error details:', error.response.data);
+      }
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   getPracticeStats: async (wordListId: number): Promise<PracticeStats> => {
-    const response = await axiosInstance.get<PracticeStats>(`/api/v1/practice/${wordListId}/stats`);
-    return response.data;
+    try {
+      const response = await axiosInstance.get<PracticeStats>(`/api/v1/practice/${wordListId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error getting practice stats for list ${wordListId}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   getMistakePatterns: async (wordListId?: number | null): Promise<Array<{ pattern: string; count: number }>> => {
-    const url = '/api/v1/practice/mistake-patterns' + (wordListId ? `?word_list_id=${wordListId}` : '');
-    const response = await axiosInstance.get(url);
-    return response.data;
+    try {
+      const url = '/api/v1/practice/mistake-patterns' + (wordListId ? `?word_list_id=${wordListId}` : '');
+      const response = await axiosInstance.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting mistake patterns:', error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 };
 
 // Review API methods
 export const reviewAPI = {
   getNextReviewWord: async (): Promise<Word | null> => {
-    const response = await axiosInstance.get<Word[]>('/api/v1/srs/review?limit=1');
-    return response.data[0] || null;
+    try {
+      const response = await axiosInstance.get<Word[]>('/api/v1/srs/review?limit=1');
+      return response.data[0] || null;
+    } catch (error) {
+      console.error('Error getting next review word:', error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   submitReview: async (wordId: number, userSpelling: string): Promise<PracticeResponse> => {
-    const response = await axiosInstance.post<PracticeResponse>(`/api/v1/srs/review/${wordId}/submit`, {
-      user_spelling: userSpelling,
-    });
-    return response.data;
+    try {
+      const response = await axiosInstance.post<PracticeResponse>(`/api/v1/srs/review/${wordId}/submit`, {
+        user_spelling: userSpelling,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error submitting review for word ${wordId}:`, error);
+      throw new Error(extractErrorMessage(error));
+    }
   },
 
   getStats: async (): Promise<SRSStats> => {
-    const response = await axiosInstance.get<SRSStats>('/api/v1/srs/stats');
-    return response.data;
+    try {
+      const response = await axiosInstance.get<SRSStats>('/api/v1/srs/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting SRS stats:', error);
+      throw new Error(extractErrorMessage(error));
+    }
   }
 };
-
 
 // TTS API methods
 export const ttsAPI = {
   generateAllAudio: async (speed: 'slow' | 'normal' = 'normal'): Promise<TTSResponse> => {
-    const response = await axiosInstance.post<TTSResponse>('/api/v1/tts/generate-all', { speed });
-    return response.data;
+    try {
+      const response = await axiosInstance.post<TTSResponse>('/api/v1/tts/generate-all', { speed });
+      return response.data;
+    } catch (error) {
+      console.error('Error generating audio:', error);
+      throw new Error(extractErrorMessage(error));
+    }
   }
 };
