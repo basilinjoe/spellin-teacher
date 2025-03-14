@@ -1,10 +1,10 @@
 import axiosInstance, { extractErrorMessage } from './httpClient';
-import { Word, PracticeResponse, SRSStats } from './types';
+import { ReviewWord, PracticeResponse, SRSStats } from './types';
 
 export const reviewService = {
-  getNextReviewWord: async (): Promise<Word | null> => {
+    getNextReviewWord: async (): Promise<ReviewWord | null> => {
     try {
-      const response = await axiosInstance.get<Word[]>('/api/v1/srs/review?limit=1');
+      const response = await axiosInstance.get<ReviewWord[]>('/api/v1/srs/review?limit=1');
       return response.data[0] || null;
     } catch (error) {
       console.error('Error getting next review word:', error);

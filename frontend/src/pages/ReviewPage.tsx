@@ -1,26 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { reviewAPI, getAudioUrl } from '../services/api';
+import { reviewService, getAudioUrl, ReviewWord } from '../services';
 import { 
     LoadingSpinner, 
     ErrorAlert, 
     AudioPlayButton, 
     PracticeResultCard,
-    PageContainer,
-    PageHeader,
-    StatsCard 
+    PageContainer
 } from '../components';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-interface Word {
-    id: number;
-    word: string;
-    audio_url: string;
-    srs_level: number;
-    meaning?: string;
-    example?: string;
-}
 
 interface PracticeResult {
     word_id: number;
@@ -36,7 +25,7 @@ interface PracticeResult {
 }
 
 const ReviewPage: React.FC = () => {
-    const [currentWord, setCurrentWord] = useState<Word | null>(null);
+    const [currentWord, setCurrentWord] = useState<ReviewWord | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [userInput, setUserInput] = useState<string>('');
     const [result, setResult] = useState<PracticeResult | null>(null);
@@ -60,19 +49,18 @@ const ReviewPage: React.FC = () => {
         };
     }, []);
 
-    const loadReviewWords = async (): Promise<void> => {
+    const fetchNextWord = async () => {
         try {
             setLoading(true);
             setError('');
-            const word = await reviewAPI.getNextReviewWord();
-            if (!word) {
+            const word = await reviewService.getNextReviewWord();
+            
+            if (word) {
+                setCurrentWord(word);
+                setAudioUrl(word.audio_url ? getAudioUrl(word.audio_url) : null);
+            } else {
                 setCurrentWord(null);
-                setAudioUrl(null);
-                return;
             }
-            setCurrentWord(word);
-            // Apply the getAudioUrl function to ensure the URL is complete
-            setAudioUrl(word.audio_url ? getAudioUrl(word.audio_url) : null);
             setResult(null);
             setUserInput('');
         } catch (err: any) {
@@ -85,7 +73,7 @@ const ReviewPage: React.FC = () => {
     };
 
     useEffect(() => {
-        loadReviewWords();
+        fetchNextWord();
     }, []);
 
     useEffect(() => {
@@ -115,7 +103,8 @@ const ReviewPage: React.FC = () => {
 
         try {
             setLoading(true);
-            const response = await reviewAPI.submitReview(currentWord.id, userInput.trim());
+            console.log(currentWord,userInput)
+            const response = await reviewService.submitReview(Number(currentWord.id), userInput.trim());
             setResult(response);
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to submit review');
@@ -141,7 +130,7 @@ const ReviewPage: React.FC = () => {
                                 <Button
                                     size="lg"
                                     className="w-full"
-                                    onClick={loadReviewWords}
+                                    onClick={fetchNextWord}
                                 >
                                     Next Word
                                 </Button>

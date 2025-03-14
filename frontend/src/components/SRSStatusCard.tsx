@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { reviewAPI } from '../services/api';
+import { reviewService } from '../services';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -19,17 +19,18 @@ const SRSStatusCard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const loadStats = async (): Promise<void> => {
+    const fetchStats = async () => {
       try {
-        const data = await reviewAPI.getStats();
-        setStats(data);
-      } catch (err) {
-        console.error('Error loading SRS stats:', err);
+        const stats = await reviewService.getStats();
+        setStats(stats);
+      } catch (error) {
+        console.error('Error fetching SRS stats:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadStats();
+
+    fetchStats();
   }, []);
 
   if (loading || !stats) {

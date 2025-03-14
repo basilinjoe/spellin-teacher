@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { wordListAPI, practiceAPI } from '../services/api';
+import { wordListService, practiceService } from '../services';
 import { 
     LoadingSpinner, 
     PageContainer,
@@ -52,12 +52,12 @@ const WordListsPage: React.FC = () => {
     const fetchWordLists = async (): Promise<void> => {
         try {
             setLoading(true);
-            const lists = await wordListAPI.getWordLists();
+            const lists = await wordListService.getWordLists();
             setWordLists(lists);
 
             // Fetch stats for each word list
             const statsPromises = lists.map(list => 
-                practiceAPI.getPracticeStats(list.id)
+                practiceService.getPracticeStats(list.id)
                     .then(stats => ({ listId: list.id, stats }))
                     .catch(() => ({ listId: list.id, stats: null }))
             );
@@ -94,7 +94,7 @@ const WordListsPage: React.FC = () => {
         if (!selectedList) return;
 
         try {
-            await wordListAPI.updateWordList(selectedList.id, editForm.name, editForm.description);
+            await wordListService.updateWordList(selectedList.id, editForm.name, editForm.description);
             setShowEditModal(false);
             fetchWordLists();
         } catch (err: any) {
@@ -106,7 +106,7 @@ const WordListsPage: React.FC = () => {
         if (!selectedList) return;
 
         try {
-            await wordListAPI.deleteWordList(selectedList.id);
+            await wordListService.deleteWordList(selectedList.id);
             setShowDeleteModal(false);
             fetchWordLists();
         } catch (err: any) {

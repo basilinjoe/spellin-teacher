@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { wordListAPI } from '../services/api';
+import { wordListService } from '../services';
 import { 
     ErrorAlert, 
     WordListForm,
@@ -34,11 +34,10 @@ const UploadPage: React.FC = () => {
 
         try {
             setLoading(true);
-            setError('');
-
-            await wordListAPI.uploadList(form.name, form.description, form.file);
+            await wordListService.uploadWordList(form.name, form.description, form.file);
             navigate('/word-lists');
         } catch (err: any) {
+            console.error('Upload error:', err);
             setError(err.response?.data?.detail || 'Failed to upload word list');
         } finally {
             setLoading(false);

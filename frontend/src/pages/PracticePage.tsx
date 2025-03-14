@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { practiceAPI, wordListAPI, getAudioUrl } from '../services/api';
+import { practiceService, wordListService, getAudioUrl } from '../services';
 import { 
     LoadingSpinner, 
     ErrorAlert, 
@@ -73,13 +73,15 @@ const PracticePage: React.FC = () => {
     }, []);
 
     const loadData = async (): Promise<void> => {
+        if (!listId) return;
+
         try {
             setLoading(true);
             setError('');
 
             const [wordListData, wordData] = await Promise.all([
-                wordListAPI.getWordList(parseInt(listId)),
-                practiceAPI.getWordForPractice(parseInt(listId), speed)
+                wordListService.getWordList(parseInt(listId)),
+                practiceService.getWordForPractice(parseInt(listId), speed)
             ]);
 
             setWordList(wordListData);
@@ -123,32 +125,13 @@ const PracticePage: React.FC = () => {
         if (!currentWord || !userInput.trim()) return;
 
         try {
-            // Add debugging to verify currentWord.word_id exists
-            console.log('Current word before submission:', currentWord);
-            
-            if (currentWord.word_id === undefined) {
-                setError('Word ID is missing. Please reload the page and try again.');
-                return;
-            }
-            
-            const response = await practiceAPI.submitPractice(currentWord.word_id, userInput.trim());
-            setResult({
-                correct: response.correct,
-                mistake_pattern: response.mistake_patterns?.[0],
-                word: response.word || currentWord.word,
-                meaning: response.meaning,
-                example: response.example
-            });
-
-            setUserInput('');
+            setLoading(true);
+            const response = await practiceService.submitPractice(currentWord.word_id, userInput.trim());
+            setResult(response);
         } catch (err: any) {
-            console.error('Practice submission error:', err);
-            // Convert error object to string if needed
-            let errorMessage = err.message || 'Failed to submit answer';
-            if (typeof err === 'object') {
-                errorMessage = err.message || JSON.stringify(err);
-            }
-            setError(errorMessage);
+            setError(err.response?.data?.detail || 'Failed to submit practice');
+        } finally {
+            setLoading(false);
         }
     };
 

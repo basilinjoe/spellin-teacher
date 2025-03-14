@@ -59,3 +59,12 @@ export interface MistakePatternResponse {
     word: string;
   };
 }
+
+export interface ReviewWord {
+  id: number;
+  word: string;
+  meaning: string;
+  example: string | null;
+  audio_url: string;
+  srs_level: number;
+}

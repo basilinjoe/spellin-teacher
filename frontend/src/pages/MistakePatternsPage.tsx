@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { practiceAPI, wordListAPI } from '../services/api';
+import { practiceService, wordListService } from '../services';
 import { 
     LoadingSpinner,
     PageContainer,
@@ -50,31 +50,25 @@ const MistakePatternsPage: React.FC = () => {
     const [error, setError] = useState<string>('');
 
     useEffect(() => {
-        loadData();
-    }, [listId]);
-
-    const loadData = async (): Promise<void> => {
-        try {
-            setLoading(true);
-            setError('');
-
-            if (listId) {
-                const [listData, patternsData] = await Promise.all([
-                    wordListAPI.getWordList(parseInt(listId)),
-                    practiceAPI.getMistakePatterns(parseInt(listId))
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [listsData, patternsData] = await Promise.all([
+                    wordListService.getWordLists(),
+                    practiceService.getMistakePatterns(listId)
                 ]);
-                setWordList(listData);
+                setWordList(listsData);
                 setPatterns(patternsData);
-            } else {
-                const patternsData = await practiceAPI.getMistakePatterns();
-                setPatterns(patternsData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError('Failed to load mistake patterns');
+            } finally {
+                setLoading(false);
             }
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to load mistake patterns');
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+
+        fetchData();
+    }, [listId]);
 
     const transformPatterns = (patterns: MistakePatternResponse[]): { [key: string]: MistakePattern[] } => {
         // Group patterns by type

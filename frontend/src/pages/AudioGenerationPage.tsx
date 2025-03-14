@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ttsAPI } from '../services/api';
+import { ttsService } from '../services';
 import { 
     ErrorAlert,
     PageContainer,
@@ -23,22 +23,14 @@ const AudioGenerationPage: React.FC = () => {
     const [progress, setProgress] = useState<GenerationProgress | null>(null);
     const [error, setError] = useState<string>('');
 
-    const handleGenerateAudio = async (): Promise<void> => {
+    const handleSubmit = async (): Promise<void> => {
         try {
             setLoading(true);
             setError('');
-            setProgress(null);
-            
-            const result = await ttsAPI.generateAllAudio(speed);
-            
-            setProgress({
-                total: result.total,
-                processed: result.processed,
-                failed: result.failed,
-                percentage: Math.round((result.processed / result.total) * 100)
-            });
+            const response = await ttsService.generateAllAudio(speed);
+            setStats(response);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to generate audio files');
+            setError(err.response?.data?.detail || 'Failed to generate audio');
         } finally {
             setLoading(false);
         }
@@ -71,7 +63,7 @@ const AudioGenerationPage: React.FC = () => {
 
                         <Button 
                             type="button"
-                            onClick={handleGenerateAudio}
+                            onClick={handleSubmit}
                             disabled={loading}
                             className="w-full"
                         >

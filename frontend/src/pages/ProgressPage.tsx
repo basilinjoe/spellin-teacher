@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { practiceAPI, wordListAPI } from '../services/api';
+import { wordListService, practiceService } from '../services';
 import { LoadingSpinner, ErrorAlert, StatsCard, WordTable, PageHeader, PageContainer } from '../components';
 import { Button } from "@/components/ui/button";
 import { Word as TableWord } from '../components/WordTable';
@@ -51,9 +51,9 @@ const ProgressPage: React.FC = () => {
                 setError('');
                 
                 const [listData, wordsData, statsData] = await Promise.all([
-                    wordListAPI.getWordList(parseInt(listId)),
-                    wordListAPI.getWordsInList(parseInt(listId)),
-                    practiceAPI.getPracticeStats(parseInt(listId))
+                    wordListService.getWordList(parseInt(listId)),
+                    wordListService.getWordsInList(parseInt(listId)),
+                    practiceService.getPracticeStats(parseInt(listId))
                 ]);
                 
                 setWordList(listData);
