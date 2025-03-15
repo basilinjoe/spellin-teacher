@@ -21,3 +21,19 @@ async def generate_all_audio(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/word-list/{word_list_id}/generate", response_model=Dict)
+async def generate_word_list_audio(
+    word_list_id: int,
+    speed: str = "normal",
+    db: AsyncSession = Depends(get_db)
+):
+    """Generate audio files for words in a specific word list"""
+    if speed not in ["normal", "slow"]:
+        raise HTTPException(status_code=400, detail="Speed must be 'normal' or 'slow'")
+    
+    try:
+        result = await batch_tts_service.generate_audio_for_word_list(db, word_list_id, speed)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

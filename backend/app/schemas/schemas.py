@@ -48,10 +48,28 @@ class MistakePatternBase(BaseModel):
 class MistakePatternCreate(MistakePatternBase):
     word_id: int
 
-class MistakePatternResponse(MistakePatternBase):
+class WordBase(BaseModel):
     id: int
-    created_at: datetime
-    updated_at: Optional[datetime]
+    word: str
+    meaning: Optional[str] = None
+    example: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class WordForPattern(BaseModel):
+    id: int
+    word: str
+
+    class Config:
+        from_attributes = True
+
+class MistakePatternResponse(BaseModel):
+    pattern_type: str
+    description: str
+    examples: List[str]
+    count: int
+    word: Optional[WordForPattern] = None
 
     class Config:
         from_attributes = True
@@ -122,15 +140,19 @@ class SRSStatsResponse(BaseModel):
     total_words: int
     total_due: int
     level_counts: Dict[int, int]
+    accuracy: float
+    words_studied: int
 
 class ReviewWordRequest(BaseModel):
     word_id: int
 
 class ReviewWordResponse(BaseModel):
+    id: int
     word: str
     meaning: Optional[str] = None
     example: Optional[str] = None
     audio_url: str
+    srs_level: int
 
 class ReviewSubmitRequest(BaseModel):
     user_spelling: str

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { axiosInstance } from '../services/api';
+import axiosInstance from '../services/httpClient';
 
 interface User {
   id: number;

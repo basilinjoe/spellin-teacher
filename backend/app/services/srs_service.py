@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
+from sqlalchemy import and_, func, desc, text
+from sqlalchemy.orm import joinedload
+from functools import lru_cache
+import json
 
 from app.models.models import Word, WordList
-
 
 class SRSService:
     """Service for managing spaced repetition learning"""
@@ -19,26 +21,60 @@ class SRSService:
     # Level 5: 720 hours (30 days)
     INTERVALS = [4, 8, 24, 72, 168, 720]
     
+    # Cache for 1 hour
+    @lru_cache(maxsize=128)
+    def get_review_interval(self, level: int) -> int:
+        """Get the review interval in hours for a given SRS level"""
+        if level < 0:
+            level = 0
+        elif level >= len(self.INTERVALS):
+            level = len(self.INTERVALS) - 1
+        return self.INTERVALS[level]
+
     async def get_due_words(self, db: AsyncSession, user_id: int, limit: int = 20) -> List[Word]:
-        """Get words that are due for review"""
+        """Get words that are due for review using an optimized query"""
         current_time = datetime.utcnow()
-        result = await db.execute(
-            select(Word)
-            .join(WordList)
-            .filter(
+        
+        # Use a properly constructed SQLAlchemy query instead of raw SQL
+        # First get due words
+        due_query = select(Word).join(WordList, Word.word_list_id == WordList.id).where(
+            and_(
+                WordList.owner_id == user_id,
+                Word.next_review <= current_time
+            )
+        ).order_by(desc(Word.srs_level), Word.next_review).limit(limit)
+        
+        due_result = await db.execute(due_query)
+        due_words = due_result.scalars().all()
+        
+        # If we need more words, get new words that haven't been reviewed yet
+        if len(due_words) < limit:
+            new_words_limit = limit - len(due_words)
+            new_query = select(Word).join(WordList, Word.word_list_id == WordList.id).where(
                 and_(
                     WordList.owner_id == user_id,
-                    Word.next_review <= current_time
+                    Word.next_review == None,
+                    Word.srs_level == 0
                 )
-            )
-            .order_by(Word.next_review)
-            .limit(limit)
-        )
-        return result.scalars().all()
-    
+            ).order_by(func.random()).limit(new_words_limit)
+            
+            new_result = await db.execute(new_query)
+            new_words = new_result.scalars().all()
+            
+            # Combine due words and new words
+            return list(due_words) + list(new_words)
+        
+        return list(due_words)
+
     async def process_review_result(self, db: AsyncSession, word: Word, correct: bool) -> None:
         """Process the result of a word review and update SRS accordingly"""
         current_time = datetime.utcnow()
+        
+        # Initialize stats if this is the first review
+        if word.practice_count is None:
+            word.practice_count = 0
+            word.correct_count = 0
+            word.incorrect_count = 0
         
         # Update practice statistics
         word.practice_count += 1
@@ -46,58 +82,102 @@ class SRSService:
         
         if correct:
             word.correct_count += 1
-            # Advance SRS level if correct (max 5)
+            # Use exponential backoff for higher levels
             if word.srs_level < 5:
                 word.srs_level += 1
+            elif word.review_interval:
+                # Exponential increase for mature words
+                word.review_interval = int(word.review_interval * 1.5)
         else:
             word.incorrect_count += 1
-            # Reset SRS level to 0 if incorrect
-            word.srs_level = 0
+            # Implement smart level regression
+            word.srs_level = max(0, word.srs_level - 2)  # Drop by 2 levels instead of reset
         
-        # Update review interval and next review time
-        word.review_interval = self.INTERVALS[word.srs_level]
+        # Update review interval with optimized spacing
+        base_interval = self.get_review_interval(word.srs_level)
+        # Add graduated jitter based on level
+        jitter_factor = 0.1 + (0.05 * word.srs_level)  # More variation for higher levels
+        jitter = base_interval * jitter_factor
+        final_interval = base_interval + (jitter * (0.5 - func.random()))
+        
+        word.review_interval = int(final_interval)
         word.next_review = current_time + timedelta(hours=word.review_interval)
         
-        # Mark as familiar if accuracy is good
-        if word.practice_count >= 3 and (word.correct_count / word.practice_count) >= 0.8:
+        # Smarter familiarity algorithm
+        if (word.practice_count >= 3 and 
+            (word.correct_count / word.practice_count) >= 0.8 and
+            word.srs_level >= 3):  # Must be at least level 3
             word.familiar = True
         
         await db.commit()
-    
+
     async def initialize_word(self, db: AsyncSession, word: Word) -> None:
         """Initialize SRS for a new word"""
         current_time = datetime.utcnow()
         word.srs_level = 0
-        word.review_interval = self.INTERVALS[0]
+        word.review_interval = self.get_review_interval(0)
         word.next_review = current_time + timedelta(hours=word.review_interval)
+        word.practice_count = 0
+        word.correct_count = 0
+        word.incorrect_count = 0
+        word.familiar = False
         await db.commit()
-    
+
     async def get_user_stats(self, db: AsyncSession, user_id: int) -> Dict:
-        """Get SRS statistics for the user"""
+        """Get SRS statistics for the user with optimized query"""
         current_time = datetime.utcnow()
         
-        # Get all words for user
-        result = await db.execute(
-            select(Word)
-            .join(WordList)
-            .filter(WordList.owner_id == user_id)
-        )
-        words = result.scalars().all()
+        # First query to get basic stats
+        query = text("""
+            SELECT 
+                COUNT(*) as total_words,
+                COUNT(CASE WHEN next_review <= :current_time THEN 1 END) as total_due,
+                COUNT(CASE WHEN practice_count > 0 THEN 1 END) as total_practiced,
+                COALESCE(SUM(correct_count), 0) as total_correct,
+                COALESCE(SUM(practice_count), 0) as total_attempts
+            FROM words w
+            JOIN word_lists wl ON w.word_list_id = wl.id
+            WHERE wl.owner_id = :user_id
+        """)
         
-        total_words = len(words)
-        total_due = sum(1 for word in words if word.next_review and word.next_review <= current_time)
+        result = await db.execute(query, {"user_id": user_id, "current_time": current_time})
+        stats = result.first()
         
-        # Count words at each SRS level
-        level_counts = {i: 0 for i in range(6)}  # 0-5 levels
-        for word in words:
-            level_counts[word.srs_level] += 1
+        # Second query to get level counts
+        level_query = text("""
+            SELECT 
+                COALESCE(srs_level, 0) as level, 
+                COUNT(*) as count
+            FROM words w
+            JOIN word_lists wl ON w.word_list_id = wl.id
+            WHERE wl.owner_id = :user_id
+            GROUP BY COALESCE(srs_level, 0)
+        """)
+        
+        level_result = await db.execute(level_query, {"user_id": user_id})
+        level_rows = level_result.all()
+        
+        # Convert level counts to dictionary
+        level_counts = {str(i): 0 for i in range(6)}
+        for row in level_rows:
+            level_counts[str(row.level)] = row.count
+        
+        if not stats or stats.total_words == 0:
+            return {
+                "total_words": 0,
+                "total_due": 0,
+                "level_counts": {str(i): 0 for i in range(6)},
+                "accuracy": 0,
+                "words_studied": 0
+            }
         
         return {
-            "total_words": total_words,
-            "total_due": total_due,
-            "level_counts": level_counts
+            "total_words": stats.total_words,
+            "total_due": stats.total_due,
+            "level_counts": level_counts,
+            "accuracy": stats.total_correct / stats.total_attempts if stats.total_attempts > 0 else 0,
+            "words_studied": stats.total_practiced
         }
-
 
 # Create singleton instance
 srs_service = SRSService()

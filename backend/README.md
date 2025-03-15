@@ -1,6 +1,6 @@
-# Spelling Teacher Backend
+# SpellWise Backend
 
-A FastAPI-based backend for the Spelling Teacher application providing APIs for word list management, text-to-speech, and progress tracking.
+A FastAPI-based backend for the SpellWise application providing APIs for word list management, text-to-speech, and progress tracking.
 
 ## Features
 

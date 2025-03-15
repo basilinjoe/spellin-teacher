@@ -1,142 +1,137 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Table, Badge, Alert } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
-import { practiceAPI, wordListAPI } from '../services/api';
+import { practiceService, wordListService } from '../services';
+import { 
+    LoadingSpinner,
+    PageContainer,
+    PageHeader,
+    MistakePatternTable
+} from '../components';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MistakePattern {
-  id: number;
-  pattern_type: string;
-  description: string;
-  frequency: number;
-  examples: string[];
-  word?: {
-    word: string;
-  };
+    id: number;
+    word?: {
+        id: number;
+        word: string;
+    };
+    description: string;
+    frequency: number;
+    examples: string[];
 }
 
 interface WordList {
-  id: number;
-  name: string;
-  description?: string;
+    id: number;
+    name: string;
+    description?: string;
 }
 
-interface RouteParams {
-  [key: string]: string | undefined;
-  listId?: string;
+interface MistakePatternResponse {
+    pattern_type: string;
+    description: string;
+    examples: string[];
+    count: number;
+    word?: {
+        id: number;
+        word: string;
+    };
 }
+
+type RouteParams = {
+    [key: string]: string | undefined;
+    listId?: string;
+};
 
 const MistakePatternsPage: React.FC = () => {
-  const { listId } = useParams<RouteParams>();
-  const [patterns, setPatterns] = useState<MistakePattern[]>([]);
-  const [wordList, setWordList] = useState<WordList | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+    const { listId } = useParams<RouteParams>();
+    const [patterns, setPatterns] = useState<MistakePatternResponse[]>([]);
+    const [wordList, setWordList] = useState<WordList | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>('');
 
-  useEffect(() => {
-    loadData();
-  }, [listId]);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [listsData, patternsData] = await Promise.all([
+                    wordListService.getWordLists(),
+                    practiceService.getMistakePatterns(Number(listId))
+                ]);
+                
+                // Find the specific word list by ID
+                const currentList = listId 
+                    ? listsData.find(list => list.id === parseInt(listId))
+                    : null;
+                    
+                setWordList(currentList);
+                setPatterns(patternsData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError('Failed to load mistake patterns');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const loadData = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError('');
+        fetchData();
+    }, [listId]);
 
-      const patternsPromise = practiceAPI.getMistakePatterns(listId ? parseInt(listId) : null);
-      let wordListPromise;
-      if (listId) {
-        wordListPromise = wordListAPI.getWordList(parseInt(listId));
-      }
+    const transformPatterns = (patterns: MistakePatternResponse[]): { [key: string]: MistakePattern[] } => {
+        // Group patterns by type
+        const groupedPatterns = patterns.reduce((acc, p) => {
+            const type = p.pattern_type || 'other';
+            if (!acc[type]) {
+                acc[type] = [];
+            }
+            
+            acc[type].push({
+                id: acc[type].length, // Use array index as ID within each group
+                word: p.word,
+                description: p.description,
+                frequency: p.count,
+                examples: p.examples
+            });
+            
+            return acc;
+        }, {} as { [key: string]: MistakePattern[] });
 
-      const [patternsData, wordListData] = await Promise.all([
-        patternsPromise,
-        wordListPromise
-      ].filter(Boolean) as [Promise<MistakePattern[]>, Promise<WordList>?]);
-      
-      setPatterns(patternsData);
-      if (wordListData) {
-        setWordList(wordListData);
-      }
-    } catch (err) {
-      setError((err as any).response?.data?.detail || 'Failed to load mistake patterns');
-    } finally {
-      setLoading(false);
+        // Sort types by total frequency
+        const sortedGroups = Object.entries(groupedPatterns)
+            .sort(([, patternsA], [, patternsB]) => {
+                const totalA = patternsA.reduce((sum, p) => sum + p.frequency, 0);
+                const totalB = patternsB.reduce((sum, p) => sum + p.frequency, 0);
+                return totalB - totalA;
+            });
+
+        return Object.fromEntries(sortedGroups);
+    };
+
+    if (loading) {
+        return <LoadingSpinner />;
     }
-  };
 
-  // Group patterns by type
-  const groupedPatterns: Record<string, MistakePattern[]> = patterns.reduce((groups, pattern) => {
-    const group = groups[pattern.pattern_type] || [];
-    group.push(pattern);
-    groups[pattern.pattern_type] = group;
-    return groups;
-  }, {} as Record<string, MistakePattern[]>);
-
-  if (loading) {
     return (
-      <Container className="py-5">
-        <div className="text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </Container>
+        <PageContainer>
+            <PageHeader 
+                title={wordList ? `${wordList.name} - Mistake Patterns` : 'All Mistake Patterns'}
+                description={wordList?.description || 'Analysis of common spelling mistake patterns'}
+            />
+
+            {error ? (
+                <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            ) : patterns.length === 0 ? (
+                <Alert>
+                    <AlertDescription>
+                        No mistake patterns found. Keep practicing to see your common spelling mistakes!
+                    </AlertDescription>
+                </Alert>
+            ) : (
+                <MistakePatternTable patterns={transformPatterns(patterns)} />
+            )}
+        </PageContainer>
     );
-  }
-
-  return (
-    <Container className="py-5">
-      <Row className="mb-4">
-        <Col>
-          <h1 className="mb-4">
-            {wordList ? `Mistake Patterns - ${wordList.name}` : 'All Mistake Patterns'}
-          </h1>
-          {error && <Alert variant="danger">{error}</Alert>}
-        </Col>
-      </Row>
-
-      {Object.entries(groupedPatterns).map(([type, typePatterns]) => (
-        <Card key={type} className="mb-4">
-          <Card.Header>
-            <h4 className="mb-0 text-capitalize">{type} Patterns</h4>
-          </Card.Header>
-          <Card.Body>
-            <Table responsive>
-              <thead>
-                <tr>
-                  <th>Word</th>
-                  <th>Description</th>
-                  <th>Frequency</th>
-                  <th>Examples</th>
-                </tr>
-              </thead>
-              <tbody>
-                {typePatterns.map((pattern) => (
-                  <tr key={pattern.id}>
-                    <td>{pattern.word?.word}</td>
-                    <td>{pattern.description}</td>
-                    <td>
-                      <Badge bg="primary">{pattern.frequency}</Badge>
-                    </td>
-                    <td>
-                      <small className="text-muted">
-                        {pattern.examples.join(', ')}
-                      </small>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Card.Body>
-        </Card>
-      ))}
-
-      {patterns.length === 0 && (
-        <Alert variant="info">
-          No mistake patterns found. Practice more words to see your common mistakes here.
-        </Alert>
-      )}
-    </Container>
-  );
 };
 
 export default MistakePatternsPage;

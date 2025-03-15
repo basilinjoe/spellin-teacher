@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Spelling Teacher API",
+    title="SpellWise API",
     description="API for learning spelling through practice",
     version="1.0.0",
 )
@@ -47,7 +47,7 @@ app.mount("/uploads", StaticFiles(directory="static/uploads"), name="uploads")
 async def root():
     """Root endpoint providing API information"""
     return {
-        "app": "Spelling Teacher API",
+        "app": "SpellWise API",
         "version": "1.0.0",
         "documentation_url": "/docs",
         "alternative_docs_url": "/redoc"

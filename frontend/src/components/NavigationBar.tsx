@@ -1,53 +1,127 @@
-import React, { useContext } from 'react';
-import { Navbar, Nav, Container } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { Button } from './ui/button';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Menu, List, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { ThemeToggle } from './ThemeToggle';
+import { cn } from '@/lib/utils';
+import { AnimatePresence } from 'framer-motion';
 
 const NavigationBar: React.FC = () => {
-  const { currentUser, logout } = useContext(AuthContext);
+  const context = useContext(AuthContext);
+  const currentUser = context?.currentUser;
+  const logout = context?.logout ?? (() => {});
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const handleLogout = (): void => {
     logout();
     navigate('/login');
   };
 
+  const navItems = [
+    {
+      name: 'Dashboard',
+      path: '/',
+      icon: <LayoutDashboard className="h-4 w-4" />
+    },
+    {
+      name: 'Word Lists',
+      path: '/word-lists',
+      icon: <List className="h-4 w-4" />
+    },
+    {
+      name: 'Mistake Patterns',
+      path: '/mistake-patterns',
+      icon: <AlertTriangle className="h-4 w-4" />
+    }
+  ];
+
+  const getInitials = (email: string): string => {
+    return email
+      ? email.split('@')[0].substring(0, 2).toUpperCase()
+      : 'ST';
+  };
+
   return (
-    <Navbar bg="light" expand="lg" className="mb-3">
-      <Container>
-        <Navbar.Brand as={Link} to="/">
-          <i className="fas fa-spell-check me-2"></i>
-          Spelling Teacher
-        </Navbar.Brand>
-        
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto">
+    <header
+      className={cn(
+        "sticky top-0 z-40 w-full border-b backdrop-blur bg-background",
+        "transition-[background-color,border-color]",
+      )}
+    >
+      <div className="container flex items-center px-4 h-14">
+        <Link 
+          to="/" 
+          className="flex items-center space-x-2 transition-transform hover:scale-105 mr-8"
+        >
+          <i className="fas fa-spell-check text-primary text-xl"></i>
+          <span className="hidden sm:inline-block font-bold">
+          SpellWise
+          </span>
+        </Link>
+
+        {currentUser && (
+          <nav className="hidden md:flex flex-1">
+            <ul className="flex items-center gap-4 text-sm">
+              {navItems.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200",
+                      "hover:bg-accent hover:text-accent-foreground",
+                      location.pathname === item.path && "bg-accent text-accent-foreground"
+                    )}
+                  >
+                    {item.icon}
+                    <span>{item.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <ThemeToggle />
+          <AnimatePresence mode="wait">
             {currentUser ? (
-              <>
-                <Nav.Item className="d-flex align-items-center me-3">
-                  <i className="fas fa-user me-2"></i>
-                  {currentUser.email}
-                </Nav.Item>
-                <Nav.Link onClick={handleLogout}>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex md:items-center md:gap-2">
+                  <Avatar className="h-8 w-8 transition-transform hover:scale-105">
+                    <AvatarFallback className="text-sm bg-primary/10 text-primary">
+                      {getInitials(currentUser.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm hidden md:inline-block">{currentUser.email}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={handleLogout}
+                  className="hidden md:flex transition-all"
+                  size="sm"
+                >
                   Logout
-                </Nav.Link>
-              </>
+                </Button>
+              </div>
             ) : (
-              <>
-                <Nav.Link as={Link} to="/login">
-                  Login
-                </Nav.Link>
-                <Nav.Link as={Link} to="/register">
-                  Register
-                </Nav.Link>
-              </>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" asChild size="sm" className="transition-transform hover:scale-105">
+                  <Link to="/login">Login</Link>
+                </Button>
+                <Button variant="default" asChild size="sm" className="transition-transform hover:scale-105">
+                  <Link to="/register">Register</Link>
+                </Button>
+              </div>
             )}
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+          </AnimatePresence>
+        </div>
+      </div>
+    </header>
   );
 };
 

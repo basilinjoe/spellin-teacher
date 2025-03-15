@@ -1,78 +1,109 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, ProgressBar } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { reviewAPI } from '../services/api';
+import { reviewService } from '../services';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SRSStats } from '@/services/types';
 
-interface SRSStats {
-  total_due: number;
-  total_words: number;
-  level_counts: {
-    [key: number]: number;
-  };
+interface SRSStatusCardProps {
+  onReviewClick: () => void;
 }
 
-const SRSStatusCard: React.FC = () => {
+const SRSStatusCard: React.FC<SRSStatusCardProps> = ({ onReviewClick }) => {
   const [stats, setStats] = useState<SRSStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const loadStats = async (): Promise<void> => {
+    const fetchStats = async () => {
       try {
-        const data = await reviewAPI.getStats();
-        setStats(data);
-      } catch (err) {
-        console.error('Error loading SRS stats:', err);
+        const response = await reviewService.getStats();
+        setStats(response);
+      } catch (error) {
+        console.error('Error fetching SRS stats:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadStats();
+
+    fetchStats();
   }, []);
 
   if (loading || !stats) {
     return (
-      <Card className="loading-pulse mb-4">
-        <Card.Body>
-          <div className="placeholder-glow">
-            <span className="placeholder col-6"></span>
+      <Card className="mb-4">
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <Skeleton className="h-16 w-[200px] mx-auto" />
+            <div className="flex justify-center gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="text-center">
+                  <Skeleton className="h-8 w-8 mx-auto mb-1" />
+                  <Skeleton className="h-4 w-8" />
+                </div>
+              ))}
+            </div>
+            <Skeleton className="h-9 w-[120px] mx-auto" />
           </div>
-        </Card.Body>
+        </CardContent>
       </Card>
     );
   }
 
+  const dueProgress = stats.total_words > 0 
+    ? ((stats.total_words - stats.total_due) / stats.total_words) * 100 
+    : 0;
+
   return (
     <Card className="mb-4">
-      <Card.Body>
-        <Row className="align-items-center">
-          <Col md={8}>
-            <h5 className="mb-3">Learning Progress</h5>
-            <ProgressBar className="mb-2">
-              {[0, 1, 2, 3, 4, 5].map(level => (
-                <ProgressBar
-                  key={level}
-                  variant={level === 5 ? 'success' : 'primary'}
-                  now={(stats.level_counts[level] || 0) / (stats.total_words || 1) * 100}
-                  label={`${stats.level_counts[level] || 0}`}
-                />
-              ))}
-            </ProgressBar>
-            <small className="text-muted">
-              Words by SRS level (0-5)
-            </small>
-          </Col>
-          <Col md={4} className="text-center text-md-end mt-3 mt-md-0">
-            <div className="mb-2">
-              <strong className="h4">{stats.total_due}</strong> words
-              <br />
-              due for review
+      <CardHeader>
+        <CardTitle>SRS Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div>
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <div>Progress</div>
+              <div>{Math.round(dueProgress)}%</div>
             </div>
-            <Link to="/review" className="btn btn-primary">
+            <Progress value={dueProgress} />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-end gap-4">
+              {[0, 1, 2, 3, 4, 5].map((level) => (
+                <div key={level} className="text-center flex-1">
+                  <div className="h-20 flex items-end">
+                    <div
+                      className="bg-primary/10 w-full rounded-sm transition-all duration-500 ease-in-out"
+                      style={{
+                        height: `${((stats.level_counts[level] || 0) / stats.total_words) * 100}%`,
+                        minHeight: '4px'
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-center mt-1">
+                    {stats.level_counts[level] || 0}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Words by SRS level (0-5)
+            </p>
+          </div>
+
+          <div className="text-center space-y-2">
+            <div>
+              <span className="text-3xl font-bold">{stats.total_due}</span>{' '}
+              <span className="text-muted-foreground">words due for review</span>
+            </div>
+            <Button onClick={onReviewClick}>
               Start Review
-            </Link>
-          </Col>
-        </Row>
-      </Card.Body>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 };
