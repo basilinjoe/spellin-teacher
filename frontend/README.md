@@ -1,6 +1,6 @@
-# Spelling Teacher Frontend
+# SpellWise Frontend
 
-A React-based frontend for the Spelling Teacher application that helps users improve their spelling through interactive practice.
+A React-based frontend for the SpellWise application that helps users improve their spelling through interactive practice.
 
 ## Features
 

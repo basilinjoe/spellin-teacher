@@ -60,7 +60,7 @@ const NavigationBar: React.FC = () => {
         >
           <i className="fas fa-spell-check text-primary text-xl"></i>
           <span className="hidden sm:inline-block font-bold">
-            Spelling Teacher
+          SpellWise
           </span>
         </Link>
 

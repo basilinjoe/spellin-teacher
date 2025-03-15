@@ -1,4 +1,4 @@
-# Spelling Teacher
+# SpellWise
 
 An interactive web application for practicing and improving spelling through audio-based learning.
 

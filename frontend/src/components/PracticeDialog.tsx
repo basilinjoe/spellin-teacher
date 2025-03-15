@@ -163,6 +163,7 @@ export const PracticeDialog: React.FC<PracticeDialogProps> = ({
                                                 onClick={handleNextWord}
                                                 disabled={loading}
                                                 className="flex-1 font-medium"
+                                                autoFocus
                                             >
                                                 Next Word
                                             </Button>

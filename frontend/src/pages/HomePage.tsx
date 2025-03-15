@@ -15,7 +15,7 @@ const HomePage: React.FC = () => {
                 <div className="max-w-2xl mx-auto space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Welcome to Spelling Teacher</CardTitle>
+                            <CardTitle>Welcome to SpellWise</CardTitle>
                             <CardDescription>
                                 Improve your spelling with spaced repetition and proven learning techniques.
                             </CardDescription>

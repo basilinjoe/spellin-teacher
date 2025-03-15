@@ -142,6 +142,7 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({ open, onOpenChange }
                                     className="w-full"
                                     onClick={fetchNextWord}
                                     disabled={isLoading}
+                                    autoFocus
                                 >
                                     {isLoading ? 'Loading...' : 'Next Word'}
                                 </Button>

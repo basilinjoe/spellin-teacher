@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PageContainer, PageHeader, StatsCard, ReviewDialog } from '@/components';
+import { PageContainer, PageHeader, StatsCard, ReviewDialog, LoadingSpinner } from '@/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { reviewService, practiceService, wordListService } from '@/services';
@@ -71,7 +71,7 @@ const DashboardPage = () => {
   }, []);
 
   if (loading) {
-    return <PageContainer>Loading...</PageContainer>;
+    return <LoadingSpinner />;;
   }
 
   if (!stats) {
