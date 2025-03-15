@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import auth, word_lists, practice, srs, tts
+from app.api.endpoints import auth, word_lists, practice, srs, tts, spelling_rules
 
 # Create main API router
 api_router = APIRouter()
@@ -33,4 +33,10 @@ api_router.include_router(
     tts.router,
     prefix="/tts",
     tags=["Text to Speech"]
+)
+
+api_router.include_router(
+    spelling_rules.router,
+    prefix="/spelling-rules",
+    tags=["Spelling Rules"]
 )

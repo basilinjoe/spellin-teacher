@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text, JSON, CheckConstraint
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text, JSON, CheckConstraint, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -80,3 +80,28 @@ class Word(Base):
     # Relationships
     word_list = relationship("WordList", back_populates="words")
     mistake_patterns = relationship("MistakePattern", back_populates="word", cascade="all, delete-orphan")
+    spelling_rules = relationship("SpellingRule", secondary="rule_words", back_populates="related_words")
+
+
+class SpellingRule(Base):
+    __tablename__ = "spelling_rules"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    examples = Column(JSON, nullable=False, default=list)  # List of example words
+    category = Column(String, nullable=False)  # e.g., 'vowels', 'consonants', 'silent letters'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Optional related words for practice
+    related_words = relationship("Word", secondary="rule_words", back_populates="spelling_rules")
+
+
+# Association table for many-to-many relationship between rules and words
+rule_words = Table(
+    "rule_words",
+    Base.metadata,
+    Column("rule_id", Integer, ForeignKey("spelling_rules.id"), primary_key=True),
+    Column("word_id", Integer, ForeignKey("words.id"), primary_key=True)
+)

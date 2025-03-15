@@ -7,6 +7,7 @@ import NavigationBar from './components/NavigationBar';
 import ProtectedRoute from './components/ProtectedRoute';
 import { LoadingBar } from './components/LoadingBar';
 import { AnimatePresence } from 'framer-motion';
+import { Toaster } from 'sonner';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -16,6 +17,7 @@ import RegisterPage from './pages/RegisterPage';
 import WordListsPage from './pages/WordListsPage';
 import ProgressPage from './pages/ProgressPage';
 import MistakePatternsPage from './pages/MistakePatternsPage';
+import SpellingRulesPage from './pages/SpellingRulesPage';
 
 import './App.css';
 
@@ -29,6 +31,7 @@ const App: React.FC = () => {
               <LoadingBar />
               <NavigationBar />
               <MainContent />
+              <Toaster richColors closeButton position="bottom-right" />
             </div>
           </PageProvider>
         </AuthProvider>
@@ -79,7 +82,6 @@ const MainContent: React.FC<MainContentProps> = () => {
               <WordListsPage />
             </ProtectedRoute>
           } />
-          
           <Route path="/progress/:listId" element={
             <ProtectedRoute>
               <ProgressPage />
@@ -93,6 +95,11 @@ const MainContent: React.FC<MainContentProps> = () => {
           <Route path="/mistake-patterns/:listId" element={
             <ProtectedRoute>
               <MistakePatternsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/spelling-rules" element={
+            <ProtectedRoute>
+              <SpellingRulesPage />
             </ProtectedRoute>
           } />
         </Routes>

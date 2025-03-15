@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from app.core.database import Base, engine, AsyncSessionLocal
 from app.models.models import User, WordList, Word
+from app.services.spelling_rule_service import initialize_common_rules
 
 logger = logging.getLogger(__name__)
 
@@ -66,27 +67,17 @@ async def init_db():
     """Initialize the database by creating all tables and applying migrations"""
     try:
         async with engine.begin() as conn:
-            # Create all tables if they don't exist
             await conn.run_sync(Base.metadata.create_all)
             
-        logger.info("Database tables created successfully")
-        
-        # Apply SRS migration
-        await apply_srs_migration()
-        logger.info("SRS migration applied successfully")
-        
-        # Initialize test data if database is empty
+        # Initialize common spelling rules
         async with AsyncSessionLocal() as session:
-            result = await session.execute(text("SELECT COUNT(*) FROM users"))
-            user_count = result.scalar()
+            await initialize_common_rules(session)
             
-            if user_count == 0:
-                await create_test_data(session)
-                
+        logger.info("Database initialized successfully")
     except SQLAlchemyError as e:
-        logger.error(f"Error initializing database: {str(e)}")
+        logger.error(f"Error initializing database: {e}")
         raise
-    
+
 async def create_test_data(session: AsyncSession):
     """Create test data for development"""
     try:

@@ -156,3 +156,28 @@ class ReviewWordResponse(BaseModel):
 
 class ReviewSubmitRequest(BaseModel):
     user_spelling: str
+
+# Spelling rule schemas
+class SpellingRuleBase(BaseModel):
+    title: str
+    description: str
+    examples: List[str] = Field(default_factory=list)
+    category: str
+
+class SpellingRuleCreate(SpellingRuleBase):
+    pass
+
+class SpellingRuleUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    examples: Optional[List[str]] = None
+    category: Optional[str] = None
+
+class SpellingRuleResponse(SpellingRuleBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    related_words: List[WordBase] = []
+
+    class Config:
+        from_attributes = True

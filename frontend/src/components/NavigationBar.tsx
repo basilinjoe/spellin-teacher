@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
-import { Menu, List, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { Menu, List, AlertTriangle, LayoutDashboard, BookOpen } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -37,6 +37,11 @@ const NavigationBar: React.FC = () => {
       name: 'Mistake Patterns',
       path: '/mistake-patterns',
       icon: <AlertTriangle className="h-4 w-4" />
+    },
+    {
+      name: 'Spelling Rules',
+      path: '/spelling-rules',
+      icon: <BookOpen className="h-4 w-4" />
     }
   ];
 
