@@ -37,6 +37,6 @@ api_router.include_router(
 
 api_router.include_router(
     spelling_rules.router,
-    prefix="/spelling-rules",
+    prefix="/sr",
     tags=["Spelling Rules"]
 )

@@ -26,7 +26,7 @@ const spellingRuleService = {
   async getSpellingRules(category?: string) {
     try {
       const params = category ? { category } : {};
-      const response = await axiosInstance.get<SpellingRule[]>('/api/v1/spelling-rules', { params });
+      const response = await axiosInstance.get<SpellingRule[]>('/api/v1/sr/spelling-rules', { params });
       return response.data;
     } catch (error) {
       throw new Error(extractErrorMessage(error));
@@ -35,7 +35,7 @@ const spellingRuleService = {
 
   async getSpellingRule(id: number) {
     try {
-      const response = await axiosInstance.get<SpellingRule>(`/api/v1/spelling-rules/${id}`);
+      const response = await axiosInstance.get<SpellingRule>(`/api/v1/sr/spelling-rules/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(extractErrorMessage(error));
@@ -44,7 +44,7 @@ const spellingRuleService = {
 
   async createSpellingRule(data: CreateSpellingRuleData) {
     try {
-      const response = await axiosInstance.post<SpellingRule>('/api/v1/spelling-rules', data);
+      const response = await axiosInstance.post<SpellingRule>('/api/v1/sr/spelling-rules', data);
       return response.data;
     } catch (error) {
       throw new Error(extractErrorMessage(error));
@@ -53,7 +53,7 @@ const spellingRuleService = {
 
   async updateSpellingRule(id: number, data: Partial<CreateSpellingRuleData>) {
     try {
-      const response = await axiosInstance.patch<SpellingRule>(`/api/v1/spelling-rules/${id}`, data);
+      const response = await axiosInstance.patch<SpellingRule>(`/api/v1/sr/spelling-rules/${id}`, data);
       return response.data;
     } catch (error) {
       throw new Error(extractErrorMessage(error));
@@ -62,7 +62,7 @@ const spellingRuleService = {
 
   async deleteSpellingRule(id: number) {
     try {
-      await axiosInstance.delete(`/api/v1/spelling-rules/${id}`);
+      await axiosInstance.delete(`/api/v1/sr/spelling-rules/${id}`);
       return true;
     } catch (error) {
       throw new Error(extractErrorMessage(error));
@@ -71,7 +71,7 @@ const spellingRuleService = {
 
   async addWordToRule(ruleId: number, wordId: number) {
     try {
-      await axiosInstance.post(`/api/v1/spelling-rules/${ruleId}/words/${wordId}`);
+      await axiosInstance.post(`/api/v1/sr/spelling-rules/${ruleId}/words/${wordId}`);
       return true;
     } catch (error) {
       throw new Error(extractErrorMessage(error));
@@ -80,7 +80,7 @@ const spellingRuleService = {
 
   async removeWordFromRule(ruleId: number, wordId: number) {
     try {
-      await axiosInstance.delete(`/api/v1/spelling-rules/${ruleId}/words/${wordId}`);
+      await axiosInstance.delete(`/api/v1/sr/spelling-rules/${ruleId}/words/${wordId}`);
       return true;
     } catch (error) {
       throw new Error(extractErrorMessage(error));

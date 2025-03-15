@@ -10,7 +10,7 @@ from app.schemas.schemas import (
     SpellingRuleResponse
 )
 
-router = APIRouter(prefix="/spelling-rules", tags=["spelling-rules"])
+router = APIRouter(prefix="/spelling-rules")
 
 @router.post("/", response_model=SpellingRuleResponse)
 async def create_rule(
