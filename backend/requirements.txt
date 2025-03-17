@@ -19,6 +19,7 @@ gTTS==2.4.0
 
 # Natural Language Processing
 nltk==3.8.1
+openai>=1.66.3
 
 # Utilities
 pandas>=2.2.2

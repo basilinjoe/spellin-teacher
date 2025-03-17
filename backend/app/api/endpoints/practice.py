@@ -13,6 +13,7 @@ from app.services.tts_service import tts_service
 from app.services.dictionary_service import dictionary_service
 from app.services.mistake_pattern_service import mistake_pattern_service
 from app.api.deps import get_current_user
+from app.services.llm_service import llm_service
 
 router = APIRouter()
 
@@ -170,19 +171,18 @@ async def submit_practice(
             print(f"Error getting dictionary data: {e}")
     
     # Transform mistake patterns for response using the updated schema
-    mistake_patterns = [
-        MistakePatternResponse(
-            pattern_type=p.pattern_type,
-            description=p.description,
-            examples=p.examples,
-            count=p.frequency,
-            word=WordForPattern(
-                id=word.id,
-                word=word.word
-            )
-        )
-        for p in word.mistake_patterns
-    ]
+    mistake_patterns = []
+    if not is_correct:
+        pattern = mistake_pattern_service.analyze_mistake(word.word, request.user_spelling)
+        if pattern:
+            # Create or update mistake pattern
+            db_pattern = await create_or_update_mistake_pattern(db, word.id, pattern)
+            mistake_patterns = await get_mistake_patterns(db, word_id=word.id)
+            
+            # Add LLM analysis for the patterns
+            llm_analysis = await llm_service.analyze_mistake_patterns(mistake_patterns)
+            for pattern in mistake_patterns:
+                pattern.llm_analysis = llm_analysis
     
     return PracticeResult(
         word_id=word.id,
@@ -269,7 +269,12 @@ async def get_mistake_patterns(
     result = await db.execute(query)
     patterns = result.unique().scalars().all()
     
-    # Transform the patterns to match the response schema
+    # Add LLM analysis for the patterns
+    if patterns:
+        llm_analysis = await llm_service.analyze_mistake_patterns(patterns)
+        for pattern in patterns:
+            pattern.llm_analysis = llm_analysis
+            
     return [
         MistakePatternResponse(
             pattern_type=pattern.pattern_type,
@@ -279,7 +284,8 @@ async def get_mistake_patterns(
             word=WordForPattern(
                 id=pattern.word.id,
                 word=pattern.word.word
-            ) if pattern.word else None
+            ) if pattern.word else None,
+            llm_analysis=pattern.llm_analysis
         )
         for pattern in patterns
     ]

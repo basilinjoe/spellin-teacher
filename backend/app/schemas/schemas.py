@@ -64,12 +64,18 @@ class WordForPattern(BaseModel):
     class Config:
         from_attributes = True
 
+class LLMAnalysis(BaseModel):
+    analysis: str
+    suggestions: List[str]
+    rule: Optional[str]
+
 class MistakePatternResponse(BaseModel):
     pattern_type: str
     description: str
     examples: List[str]
     count: int
     word: Optional[WordForPattern] = None
+    llm_analysis: Optional[LLMAnalysis] = None
 
     class Config:
         from_attributes = True

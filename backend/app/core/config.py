@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
+    # OpenAI Configuration
+    OPENAI_API_KEY: str = ""
+    
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./spelling_teacher.db"
     

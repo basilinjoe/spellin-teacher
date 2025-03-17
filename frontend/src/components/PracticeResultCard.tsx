@@ -4,10 +4,24 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { ExtendedPracticeResponse } from '@/services';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, X, AlertCircle, BookOpen, BrainCircuit } from "lucide-react";
 
 export interface PracticeResultProps extends ExtendedPracticeResponse {
   userInput: string;
+}
+
+interface LLMAnalysis {
+  analysis: string;
+  suggestions: string[];
+  rule: string | null;
+}
+
+interface MistakePattern {
+  pattern_type: string;
+  description: string;
+  examples: string[];
+  count: number;
+  llm_analysis?: LLMAnalysis;
 }
 
 const PracticeResultCard: React.FC<PracticeResultProps> = ({
@@ -103,6 +117,35 @@ const PracticeResultCard: React.FC<PracticeResultProps> = ({
                         <p className="text-xs text-muted-foreground">
                           Similar mistakes: {pattern.examples.join(', ')}
                         </p>
+                      )}
+
+                      {pattern.llm_analysis && (
+                        <div className="mt-4 space-y-3 pt-3 border-t">
+                          <div className="flex items-center gap-2">
+                            <BrainCircuit className="h-4 w-4 text-blue-500" />
+                            <p className="text-sm font-medium">AI Analysis</p>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground">{pattern.llm_analysis.analysis}</p>
+                          
+                          {pattern.llm_analysis.suggestions.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium">Practice Suggestions:</p>
+                              <ul className="list-disc list-inside text-sm text-muted-foreground pl-2">
+                                {pattern.llm_analysis.suggestions.map((suggestion, idx) => (
+                                  <li key={idx}>{suggestion}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {pattern.llm_analysis.rule && (
+                            <div className="flex items-start gap-2 bg-muted/50 p-2 rounded">
+                              <BookOpen className="h-4 w-4 text-green-500 mt-0.5" />
+                              <p className="text-sm">{pattern.llm_analysis.rule}</p>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </motion.div>
                   ))}

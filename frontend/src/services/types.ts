@@ -49,6 +49,12 @@ export interface TTSResponse {
   failed: number;
 }
 
+export interface LLMAnalysis {
+  analysis: string;
+  suggestions: string[];
+  rule: string | null;
+}
+
 export interface MistakePatternResponse {
   pattern_type: string;
   description: string;
@@ -58,6 +64,7 @@ export interface MistakePatternResponse {
     id: number;
     word: string;
   };
+  llm_analysis?: LLMAnalysis;
 }
 
 export interface ReviewWord {
