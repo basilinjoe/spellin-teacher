@@ -16,7 +16,7 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
-# Authentication schemas
+# Token schemas
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -49,10 +49,10 @@ class MistakePatternCreate(MistakePatternBase):
     word_id: int
 
 class WordBase(BaseModel):
-    id: int
     word: str
     meaning: Optional[str] = None
     example: Optional[str] = None
+    phonetic: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -75,11 +75,6 @@ class MistakePatternResponse(BaseModel):
         from_attributes = True
 
 # Word schemas
-class WordBase(BaseModel):
-    word: str
-    meaning: Optional[str] = None
-    example: Optional[str] = None
-
 class WordCreate(WordBase):
     word_list_id: int
 
@@ -105,6 +100,8 @@ class PracticeRequest(BaseModel):
 
 class PracticeResponse(BaseModel):
     word_id: int
+    word: str
+    phonetic: Optional[str] = None
     audio_url: str
 
 class PracticeSubmitRequest(BaseModel):
@@ -118,6 +115,7 @@ class PracticeResult(BaseModel):
     correct_spelling: str
     meaning: Optional[str] = None
     example: Optional[str] = None
+    phonetic: Optional[str] = None
     mistake_patterns: List[MistakePatternResponse] = []
 
     class Config:
@@ -151,6 +149,7 @@ class ReviewWordResponse(BaseModel):
     word: str
     meaning: Optional[str] = None
     example: Optional[str] = None
+    phonetic: Optional[str] = None
     audio_url: str
     srs_level: int
 

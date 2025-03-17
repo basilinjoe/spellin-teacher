@@ -26,6 +26,7 @@ interface Word {
     word: string;
     definition: string;
     audio_url: string;
+    phonetic?: string;
 }
 
 export const PracticeDialog: React.FC<PracticeDialogProps> = ({
@@ -185,7 +186,12 @@ export const PracticeDialog: React.FC<PracticeDialogProps> = ({
                                                     disabled={loading || !audioUrl}
                                                     size="lg"
                                                 />
-                                                <div className="flex items-center justify-between">
+                                                {currentWord.phonetic && (
+                                                    <p className="mt-4 text-lg text-muted-foreground font-mono">
+                                                        {currentWord.phonetic}
+                                                    </p>
+                                                )}
+                                                <div className="flex items-center justify-between mt-4">
                                                     <div className="flex items-center space-x-2">
                                                         <Switch
                                                             id="speed"

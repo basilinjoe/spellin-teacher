@@ -109,11 +109,16 @@ async def upload_word_list(
         if 'word' not in row:
             raise HTTPException(status_code=400, detail="CSV must have a 'word' column")
         
+        word_text = row['word'].strip()
+        # Get word details including phonetic representation
+        meaning, example, phonetic = await dictionary_service.get_word_details(word_text)
+        
         # Create new word
         word = Word(
-            word=row['word'].strip(),
-            meaning=row.get('meaning', '').strip(),
-            example=row.get('example', '').strip(),
+            word=word_text,
+            meaning=meaning or row.get('meaning', '').strip(),
+            example=example or row.get('example', '').strip(),
+            phonetic=phonetic,
             word_list_id=word_list.id,
             familiar=False,
             practice_count=0,

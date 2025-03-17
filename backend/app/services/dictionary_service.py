@@ -2,6 +2,7 @@ import nltk
 from nltk.corpus import wordnet
 import asyncio
 from typing import Tuple, Optional, List
+import requests
 
 
 class DictionaryService:
@@ -14,21 +15,22 @@ class DictionaryService:
         except LookupError:
             nltk.download('wordnet')
     
-    async def get_word_details(self, word: str) -> Tuple[Optional[str], Optional[str]]:
+    async def get_word_details(self, word: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """
-        Get the meaning and an example sentence for a word
+        Get the meaning, example, and phonetic representation for a word
         
         Args:
             word (str): The word to look up
             
         Returns:
-            tuple: (meaning, example) where both are optional strings
+            tuple: (meaning, example, phonetic) where all are optional strings
         """
         # Run WordNet lookup in a thread pool since it's blocking
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, self._get_word_details_sync, word)
-        return result
-    
+        meaning, example = await loop.run_in_executor(None, self._get_word_details_sync, word)
+        phonetic = await loop.run_in_executor(None, self._get_phonetic_sync, word)
+        return meaning, example, phonetic
+
     def _get_word_details_sync(self, word: str) -> Tuple[Optional[str], Optional[str]]:
         """
         Synchronous implementation of word details lookup
@@ -50,6 +52,28 @@ class DictionaryService:
         
         return meaning, example
 
+    def _get_phonetic_sync(self, word: str) -> Optional[str]:
+        """
+        Get the IPA (International Phonetic Alphabet) representation of a word
+        using the FreeDictionary API
+        """
+        try:
+            # FreeDictionary API endpoint
+            url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data and isinstance(data, list) and len(data) > 0:
+                    # Get phonetics from the first result
+                    for phonetic_data in data[0].get('phonetics', []):
+                        if 'text' in phonetic_data:
+                            return phonetic_data['text']
+            return None
+        except Exception as e:
+            print(f"Error getting phonetic representation: {e}")
+            return None
+
     async def get_similar_words(self, word: str, max_words: int = 10) -> List[str]:
         """
         Get a list of similar words using WordNet synonyms, hypernyms, and hyponyms
@@ -64,7 +88,7 @@ class DictionaryService:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, self._get_similar_words_sync, word, max_words)
         return result
-
+    
     def _get_similar_words_sync(self, word: str, max_words: int = 10) -> List[str]:
         """
         Synchronous implementation of similar words lookup
@@ -95,4 +119,6 @@ class DictionaryService:
         
         return list(similar_words)[:max_words]
 
+
+# Create singleton instance
 dictionary_service = DictionaryService()

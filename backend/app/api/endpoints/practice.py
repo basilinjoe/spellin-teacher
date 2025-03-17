@@ -78,9 +78,10 @@ async def get_practice_word(
     
     return {
         "word_id": word.id,
+        "word": word.word,
+        "phonetic": word.phonetic,
         "audio_url": audio_url
     }
-
 
 @router.post("/submit", response_model=PracticeResult)
 async def submit_practice(
@@ -190,6 +191,7 @@ async def submit_practice(
         correct_spelling=word.word,
         meaning=word.meaning,
         example=word.example,
+        phonetic=word.phonetic,
         mistake_patterns=mistake_patterns
     )
 

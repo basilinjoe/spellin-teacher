@@ -58,6 +58,7 @@ class Word(Base):
     word = Column(String, nullable=False)
     meaning = Column(Text, nullable=True)
     example = Column(Text, nullable=True)
+    phonetic = Column(String, nullable=True)
     word_list_id = Column(Integer, ForeignKey("word_lists.id"))
     
     # Practice statistics

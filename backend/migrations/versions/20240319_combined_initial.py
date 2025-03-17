@@ -1,6 +1,6 @@
 """Combined initial migration
 
-Revision ID: combined_initial_001
+Revision ID: 20240319_combined_initial
 Revises: 
 Create Date: 2024-03-19 12:00:00.000000
 
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic
-revision = 'combined_initial_001'
+revision = '20240319_combined_initial'
 down_revision = None
 branch_labels = None
 depends_on = None

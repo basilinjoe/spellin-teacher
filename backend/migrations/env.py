@@ -2,7 +2,7 @@ import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import pool
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection, create_engine, engine_from_config
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
@@ -31,9 +31,13 @@ config.set_main_option("sqlalchemy.url", str(SQLALCHEMY_DATABASE_URL))
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
+def get_url():
+    # Use regular SQLite for migrations, not aiosqlite
+    return "sqlite:///./spelling_teacher.db"
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -44,30 +48,24 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
-
-async def run_migrations() -> None:
-    """In this scenario we need to create the schema within a transaction."""
-    configuration = config.get_section(config.config_ini_section)
-    url = configuration["sqlalchemy.url"]
-    connectable = async_engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
-
-    await connectable.dispose()
-
-
-def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
-
-    with context.begin_transaction():
-        context.run_migrations()
-
-
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    asyncio.run(run_migrations())
+    configuration = config.get_section(config.config_ini_section)
+    configuration["sqlalchemy.url"] = get_url()
+    
+    # Create a regular SQLite engine for migrations
+    connectable = create_engine(get_url())
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()

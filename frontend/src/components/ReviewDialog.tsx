@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PracticeResultProps } from '@/components/PracticeResultCard';
 import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ReviewDialogProps {
     open: boolean;
@@ -149,10 +150,20 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({ open, onOpenChange }
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                <AudioPlayButton
-                                    onClick={playAudio}
-                                    disabled={!audioUrl}
-                                />
+                                <Card className="border-none shadow-none bg-muted/30">
+                                    <CardContent className="flex flex-col items-center justify-center pt-6 pb-6">
+                                        <AudioPlayButton
+                                            onClick={playAudio}
+                                            disabled={!audioUrl}
+                                            size="lg"
+                                        />
+                                        {currentWord.phonetic && (
+                                            <p className="mt-4 text-lg text-muted-foreground font-mono">
+                                                {currentWord.phonetic}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
 
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="space-y-2">
